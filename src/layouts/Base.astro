@@ -1,0 +1,115 @@
+---
+/* Base layout: SEO shell + theme anti-FOUC + global chrome. */
+import "../styles/tokens.css";
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  lang?: string;
+}
+
+const {
+  title,
+  description,
+  canonical = "https://lamnda.example.com/",
+  ogImage = "https://lamnda.example.com/hero-poster.webp",
+  lang = "es",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="theme-color" content="#0A1628" />
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-poster.webp"
+      fetchpriority="high"
+    />
+    <script is:inline>
+      // Anti-FOUC: apply stored theme before first paint; spec default is dark.
+      try {
+        var stored = localStorage.getItem("lamnda-theme");
+        var theme = stored === "light" || stored === "dark" ? stored : "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    </script>
+    <style is:inline>
+      html:not([data-theme]) {
+        background: #0a1628;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <slot />
+    <script is:inline>
+      // Theme toggle wiring (progressive enhancement; works with data-theme).
+      (function () {
+        function current() {
+          return (
+            document.documentElement.getAttribute("data-theme") || "dark"
+          );
+        }
+        function apply(t) {
+          document.documentElement.setAttribute("data-theme", t);
+          try {
+            localStorage.setItem("lamnda-theme", t);
+          } catch (e) {}
+          document
+            .querySelectorAll("[data-theme-toggle]")
+            .forEach(function (btn) {
+              btn.setAttribute("aria-pressed", String(t === "light"));
+              var label = btn.querySelector("[data-theme-label]");
+              if (label) label.textContent = t === "light" ? "Claro" : "Oscuro";
+            });
+        }
+        document.addEventListener("click", function (ev) {
+          var el = ev.target && ev.target.closest
+            ? ev.target.closest("[data-theme-toggle]")
+            : null;
+          if (!el) return;
+          apply(current() === "dark" ? "light" : "dark");
+        });
+        apply(current());
+      })();
+    </script>
+    <style>
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        background: var(--primary-text);
+        color: #fff;
+        padding: 0.6rem 1rem;
+        z-index: 100;
+        border-radius: 0 0 8px 0;
+      }
+      html[data-theme="light"] .skip-link {
+        color: #fff;
+      }
+      .skip-link:focus {
+        left: 0;
+      }
+    </style>
+  </body>
+</html>

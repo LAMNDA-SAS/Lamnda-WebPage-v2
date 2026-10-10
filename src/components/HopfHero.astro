@@ -1,0 +1,158 @@
+---
+/* HopfHero island: poster-first LCP, lazy WebGL on idle+visible. */
+export interface Props {
+  posterSrc?: string;
+  fiberCount?: number;
+  autoRotate?: boolean;
+}
+
+const {
+  posterSrc = "/hero-poster.webp",
+  fiberCount,
+  autoRotate,
+} = Astro.props;
+---
+
+<div class="hopf-hero" data-hopf-root data-fiber-count={fiberCount ?? ""} data-auto-rotate={autoRotate ?? ""}>
+  <img
+    class="hopf-poster"
+    src={posterSrc}
+    alt="Visualización de fibras de Hopf — remolinos azules entrelazados"
+    width="1200"
+    height="800"
+    fetchpriority="high"
+    decoding="async"
+    data-hopf-poster
+  />
+  <canvas
+    class="hopf-canvas"
+    aria-hidden="true"
+    data-hopf-canvas
+    hidden
+  ></canvas>
+  <p class="hopf-note" data-hopf-status role="status"></p>
+</div>
+
+<script>
+  import {
+    HOPF_ENABLED,
+    createHopfScene,
+    isMobileViewport,
+    prefersReducedMotion,
+  } from "../lib/hopf-scene.ts";
+
+  (function () {
+    var root = document.querySelector("[data-hopf-root]");
+    if (!root) return;
+    var canvas = root.querySelector("[data-hopf-canvas]");
+    var poster = root.querySelector("[data-hopf-poster]");
+    var status = root.querySelector("[data-hopf-status]");
+    if (!canvas || !poster) return;
+
+    function say(msg) {
+      if (status) status.textContent = msg;
+    }
+
+    // Escape hatch + motion safety: freeze to poster frame.
+    if (!HOPF_ENABLED) {
+      say("Animación desactivada (poster).");
+      return;
+    }
+    if (prefersReducedMotion()) {
+      say("Animación en pausa (movimiento reducido).");
+      return;
+    }
+
+    var started = false;
+    function hydrate() {
+      if (started) return;
+      started = true;
+      var fiberAttr = root.getAttribute("data-fiber-count");
+      var autoAttr = root.getAttribute("data-auto-rotate");
+      var opts = {};
+      if (fiberAttr) opts.fiberCount = parseInt(fiberAttr, 10) || undefined;
+      if (autoAttr === "true") opts.autoRotate = true;
+      else if (autoAttr === "false") opts.autoRotate = false;
+      else opts.autoRotate = isMobileViewport();
+      createHopfScene(canvas, opts)
+        .then(function () {
+          canvas.hidden = false;
+          poster.setAttribute("aria-hidden", "true");
+          // Keep poster underneath as fallback; canvas swaps in place (no CLS).
+          poster.style.opacity = "0";
+          poster.style.pointerEvents = "none";
+          say("");
+        })
+        .catch(function () {
+          say("No se pudo iniciar el 3D; mostrando imagen.");
+        });
+    }
+
+    // Lazy-hydrate on idle AND visible (poster paints first for LCP).
+    var visible = false;
+    function maybeStart() {
+      if (visible) {
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(hydrate, { timeout: 2500 });
+        } else {
+          setTimeout(hydrate, 600);
+        }
+      }
+    }
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) {
+            visible = true;
+            maybeStart();
+          }
+        }
+      }).observe(root);
+    } else {
+      visible = true;
+      maybeStart();
+    }
+  })();
+</script>
+
+<style>
+  .hopf-hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: radial-gradient(120% 120% at 70% 20%, #14304f 0%, #0a1628 60%);
+    border: 1px solid var(--border);
+    min-height: 320px;
+  }
+  .hopf-poster,
+  .hopf-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hopf-poster {
+    transition: opacity 0.5s ease;
+  }
+  .hopf-note {
+    position: absolute;
+    left: 0.8rem;
+    bottom: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .hopf-note:empty {
+    display: none;
+  }
+  @media (max-width: 900px) {
+    .hopf-hero {
+      min-height: 0;
+      aspect-ratio: 4 / 3;
+      max-width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.astro/
+
+# Astro cache
+.astro/
+
+# Env
+.env
+.env.*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Vitest
+coverage/

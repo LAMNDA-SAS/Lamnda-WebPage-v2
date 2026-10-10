@@ -1,0 +1,423 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import HopfHero from "../components/HopfHero.astro";
+import { getCollection } from "astro:content";
+
+/* EN exception: do not translate */
+const HERO_HEADLINE = "Complex problems. Elegant solutions.";
+
+const services = (await getCollection("services")).sort(
+  (a, b) => a.data.priority - b.data.priority,
+);
+const pillars = await getCollection("pillars");
+const vision = (await getCollection("vision"))[0];
+const mission = (await getCollection("mission"))[0];
+
+const fullCards = services.filter((s) => s.data.card === "full");
+const summaryCards = services.filter((s) => s.data.card === "summary");
+
+const pillarOrder = ["data", "security", "automation"] as const;
+const orderedPillars = [...pillars].sort(
+  (a, b) => pillarOrder.indexOf(a.data.key as (typeof pillarOrder)[number]) - pillarOrder.indexOf(b.data.key as (typeof pillarOrder)[number]),
+);
+
+const pillarLabel: Record<string, string> = {
+  data: "Data Science",
+  security: "Cybersecurity",
+  automation: "Automations",
+};
+
+const title = "Lamnda — Ciencia, tecnología e impacto";
+const description =
+  "Lamnda SAS: notificaciones inteligentes, documentación automatizada, lead scoring y dashboards dinámicos. Ciencia x tecnología x impacto.";
+---
+
+<Base title={title} description={description}>
+  <Header />
+  <main id="main">
+    <!-- HERO / LOBBY -->
+    <section id="top" class="hero" aria-labelledby="hero-heading">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          {/* EN exception: do not translate */}
+          <h1 id="hero-heading">{HERO_HEADLINE}</h1>
+          <p class="lede">
+            Convertimos sistemas complejos en productos claros: datos,
+            seguridad y automatización con rigor científico.
+          </p>
+          <div class="hero-ctas">
+            <a class="cta-primary" href="#services" id="hero-cta">
+              Explore our solutions
+            </a>
+            <a class="cta-ghost" href="#contact">Get in touch</a>
+          </div>
+          <p class="hero-note">
+            Campo de fibras de Hopf — cada hilo es un flujo de tu operación,
+            entrelazado sin enredarse.
+          </p>
+        </div>
+        <div class="hero-visual">
+          <HopfHero />
+        </div>
+      </div>
+    </section>
+
+    <!-- PILLARS -->
+    <section id="pillars" class="section" aria-labelledby="pillars-heading">
+      <div class="wrap">
+        <h2 id="pillars-heading" tabindex="-1">Pilares</h2>
+        <div class="pillar-grid">
+          {
+            orderedPillars.map((p) => (
+              <article class="pillar-card" data-pillar={p.data.key}>
+                <h3>{p.data.title}</h3>
+                <p>{p.data.tagline}</p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="section" aria-labelledby="services-heading">
+      <div class="wrap">
+        <h2 id="services-heading" tabindex="-1">Soluciones</h2>
+        <p class="section-lede">
+          Cuatro soluciones prioritarias a fondo, tres capacidades resumidas.
+          Elige por dónde empezar.
+        </p>
+        <div class="card-grid">
+          {
+            fullCards.map((s) => (
+              <article class="card card-full" data-card={s.slug}>
+                <p class="pillar-tag">{pillarLabel[s.data.pillar]}</p>
+                <h3>{s.data.title}</h3>
+                <p>{s.data.summary}</p>
+                <ul>
+                  {s.data.bullets.map((b) => (
+                    <li>{b}</li>
+                  ))}
+                </ul>
+                {s.slug === "dashboards-dinamicos" && (
+                  <div
+                    class="dashboard-mock"
+                    role="img"
+                    aria-label="Mock ilustrativo de dashboard (sin datos reales)"
+                  >
+                    <svg viewBox="0 0 320 180" width="100%" height="auto" aria-hidden="true">
+                      <rect x="0" y="0" width="320" height="180" rx="12" fill="var(--surface)" />
+                      <rect x="16" y="16" width="120" height="14" rx="7" fill="var(--primary)" opacity="0.8" />
+                      <rect x="16" y="40" width="88" height="10" rx="5" fill="var(--muted)" opacity="0.6" />
+                      <rect x="16" y="60" width="86" height="96" rx="8" fill="none" stroke="var(--primary)" stroke-width="2" />
+                      <polyline
+                        points="20,140 50,120 80,128 110,96 140,104 170,80 200,88"
+                        fill="none"
+                        stroke="var(--primary)"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                      />
+                      {[0, 1, 2].map((i) => (
+                        <rect x={120 + i * 62} y={60 + i * 12} width="52" height="34" rx="6" fill="var(--surface)" stroke="var(--border)" />
+                      ))}
+                      <circle cx="260" cy="130" r="22" fill="none" stroke="var(--primary)" stroke-width="6" stroke-dasharray="90 60" />
+                    </svg>
+                    <p class="mock-caption">Mock ilustrativo — sin datos reales</p>
+                  </div>
+                )}
+              </article>
+            ))
+          }
+        </div>
+        <div class="card-grid summary">
+          {
+            summaryCards.map((s) => (
+              <article class="card card-summary" data-card={s.slug}>
+                <p class="pillar-tag">{pillarLabel[s.data.pillar]}</p>
+                <h3>{s.data.title}</h3>
+                <p>{s.data.summary}</p>
+              </article>
+            ))
+          }
+        </div>
+        <div class="ally-block">
+          <h3>Tu aliado en la transformación digital</h3>
+          <p>
+            Empezamos por un caso de uso acotado, medimos impacto y luego
+            escalamos. Sin big-bang, sin humo.
+          </p>
+          <a class="cta-primary" href="#contact">Solicita una demo</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISION / MISSION -->
+    <section id="vision" class="section" aria-labelledby="vision-heading">
+      <div class="wrap vm-grid">
+        <article class="vm-card">
+          <h2 id="vision-heading">{vision?.data.title ?? "Visión"}</h2>
+          <p class="tbd-label">TBD — texto oficial pendiente</p>
+          <div class="vm-body">
+            {vision ? <p>{vision.body}</p> : <p>Contenido pendiente (TBD).</p>}
+          </div>
+        </article>
+        <article class="vm-card">
+          <h2 id="mission-heading">{mission?.data.title ?? "Misión"}</h2>
+          <p class="tbd-label">TBD — texto oficial pendiente</p>
+          <div class="vm-body">
+            {mission ? <p>{mission.body}</p> : <p>Contenido pendiente (TBD).</p>}
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section" aria-labelledby="contact-heading">
+      <div class="wrap contact-wrap">
+        <h2 id="contact-heading" tabindex="-1">Contacto</h2>
+        <p>
+          Cuéntanos tu caso: respondemos en menos de 48 horas hábiles.
+        </p>
+        <ul class="contact-list">
+          <li><a href="mailto:hola@lamnda.example.com">hola@lamnda.example.com</a></li>
+          <li><a href="#top">Volver al inicio</a></li>
+        </ul>
+        <form class="contact-form" action="mailto:hola@lamnda.example.com" method="post" enctype="text/plain">
+          <label>Nombre<input type="text" name="nombre" required autocomplete="name" /></label>
+          <label>Correo<input type="email" name="correo" required autocomplete="email" /></label>
+          <label>Mensaje<textarea name="mensaje" rows="4" required></textarea></label>
+          <button type="submit">Enviar</button>
+        </form>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+  .hero {
+    padding: 3.5rem 0 2.5rem;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 2.2rem;
+    align-items: center;
+  }
+  .hero-grid > * {
+    min-width: 0;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+    line-height: 1.08;
+    margin: 0 0 1rem;
+  }
+  .lede {
+    font-size: 1.12rem;
+    color: var(--muted);
+    max-width: 34rem;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 0.8rem;
+    margin: 1.4rem 0;
+    flex-wrap: wrap;
+  }
+  .cta-primary {
+    background: var(--primary-text);
+    color: #fff;
+    text-decoration: none;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  html[data-theme="light"] .cta-primary {
+    color: #fff;
+  }
+  .cta-ghost {
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+  }
+  .hero-note {
+    color: var(--muted);
+    font-size: 0.9rem;
+    max-width: 30rem;
+  }
+  .section {
+    padding: 3rem 0 1rem;
+  }
+  .section h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    margin: 0 0 0.6rem;
+  }
+  .section-lede {
+    color: var(--muted);
+    max-width: 44rem;
+  }
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .pillar-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+  }
+  .pillar-card h3 {
+    margin: 0 0 0.4rem;
+  }
+  .pillar-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.4rem;
+  }
+  .card-grid.summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.3rem;
+    box-shadow: var(--shadow);
+  }
+  .pillar-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    margin: 0 0 0.6rem;
+  }
+  .card h3 {
+    margin: 0 0 0.5rem;
+  }
+  .card ul {
+    margin: 0.8rem 0 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+  }
+  .dashboard-mock {
+    margin-top: 1rem;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 0.7rem;
+  }
+  .mock-caption {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+  }
+  .ally-block {
+    margin-top: 1.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.6rem;
+  }
+  .vm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .vm-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+  }
+  .tbd-label {
+    display: inline-block;
+    font-size: 0.78rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 0.2rem 0.6rem;
+  }
+  .contact-wrap {
+    max-width: 720px;
+  }
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .contact-form {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .contact-form label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    font: inherit;
+  }
+  .contact-form button {
+    background: var(--primary-text);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.7rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    justify-self: start;
+  }
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+    .pillar-grid,
+    .card-grid,
+    .card-grid.summary,
+    .vm-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Smooth-scroll CTA with focus management; native anchor jump is the no-JS fallback.
+  document.getElementById("hero-cta")?.addEventListener("click", function (ev) {
+    var target = document.getElementById("services-heading");
+    if (!target) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    ev.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.focus({ preventScroll: true });
+    history.replaceState(null, "", "#services");
+  });
+</script>

@@ -1,0 +1,110 @@
+---
+/* Site header: sticky nav with anchor links + theme toggle. */
+---
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Lamnda — inicio">
+      <span class="brand-mark" aria-hidden="true">λ</span>
+      <span class="brand-name">Lamnda</span>
+    </a>
+    <nav class="nav" aria-label="Navegación principal">
+      <a href="#top">Home</a>
+      <a href="#services">Solutions</a>
+      <a href="#pillars" data-pillar-link="data">Data Science</a>
+      <a href="#pillars" data-pillar-link="security">Cybersecurity</a>
+      <a href="#pillars" data-pillar-link="automation">Automations</a>
+      <a href="#vision">About</a>
+    </nav>
+    <div class="actions">
+      <button type="button" data-theme-toggle aria-pressed="false" aria-label="Cambiar tema">
+        <span aria-hidden="true">◐</span>
+        <span data-theme-label>Oscuro</span>
+      </button>
+      <a class="cta-small" href="#contact">Get in touch</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin-right: auto;
+  }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.2rem;
+  }
+  .nav {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+  .nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .nav a:hover {
+    color: var(--text);
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  [data-theme-toggle] {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .cta-small {
+    background: var(--primary-text);
+    color: #fff;
+    text-decoration: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  html[data-theme="light"] .cta-small {
+    color: #fff;
+  }
+  @media (max-width: 860px) {
+    .nav {
+      display: none;
+    }
+  }
+</style>

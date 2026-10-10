@@ -1,0 +1,55 @@
+# OpenSpec config — new webpage (Lamnda SAS marketing site)
+schema: spec-driven
+project: new webpage
+
+context: |
+  Tech stack: greenfield, undecided (no package.json/go.mod/pyproject.toml; no git repo).
+  Product: Lamnda SAS marketing site from scratch — awareness, portfolio, leads, vision/mission.
+  Audience: prospects + investors; language Spanish-first TBD (designs: EN lobby + ES services; vision/mission texts pending).
+  Interface: light/dark themes; hero lobby with interactive Hopf Fibration (desktop mouse) / static animated (mobile); scientific style, corporate blue primary, gray/white per theme.
+  v1 services: Notificaciones Inteligentes, Documentacion Automatizada, Lead Scoring, Dashboards Dinamicos; rest as summary cards.
+  CTA: primary explore portfolio, secondary contact. Inspiration: Antigravity page (hero + scroll to services + mouse animations).
+  References: foto lamnda web/lobby + services-grid PNGs. Pending: vision/mission texts, stack decision, git init.
+
+strict_tdd: false
+
+testing:
+  runner: { command: "—", framework: "none detected" }
+  layers:
+    unit: { available: false, tool: "—" }
+    integration: { available: false, tool: "—" }
+    e2e: { available: false, tool: "—" }
+  coverage: { available: false, command: "—" }
+  quality:
+    linter: { available: false, command: "—" }
+    type_checker: { available: false, command: "—" }
+    formatter: { available: false, command: "—" }
+  detected: "2026-10-10"
+  note: "Greenfield — no test runner exists yet. Re-detect on stack decision; prefer Vitest/Playwright-class tooling if JS/TS is chosen."
+
+rules:
+  general:
+    - Generated technical artifacts default to English regardless of conversation language, unless explicitly requested otherwise (neutral/professional register for other languages).
+    - Never inject regional slang or persona flourishes into code, UI strings, or artifacts.
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Follow existing code patterns
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas

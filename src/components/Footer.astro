@@ -1,0 +1,47 @@
+---
+/* Site footer: tagline + contact entry points. */
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="tag" aria-label="Lamnda tagline">SCIENCE x TECHNOLOGY x IMPACT</p>
+    <div class="links">
+      <a href="#services">Solutions</a>
+      <a href="#vision">About</a>
+      <a href="#contact">Get in touch</a>
+      <a href="mailto:hola@lamnda.example.com">hola@lamnda.example.com</a>
+    </div>
+    <p class="copy">© 2026 Lamnda SAS. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    margin-top: 4rem;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.2rem 1.2rem;
+    display: grid;
+    gap: 0.8rem;
+  }
+  .tag {
+    font-family: var(--font-display);
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    margin: 0;
+  }
+  .links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .copy {
+    color: var(--muted);
+    margin: 0;
+    font-size: 0.88rem;
+  }
+</style>
