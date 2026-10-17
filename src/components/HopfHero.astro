@@ -1,25 +1,42 @@
 ---
-/* HopfHero island: poster-first LCP, lazy WebGL on idle+visible. */
+/* HopfHero island: poster-first LCP, lazy 2D Canvas on idle+visible.
+ * Reduced-motion: single 2D frame + one frame per pointermove,
+ * zero rAF at rest, no visible banner (sr-only failure text only).
+ * Hero JS ruling: 2D renderer is a small sync import (<15KB gzip);
+ * no async WebGL chunk exists anymore.
+ */
 export interface Props {
   posterSrc?: string;
+  posterLightSrc?: string;
   fiberCount?: number;
   autoRotate?: boolean;
 }
 
+const hopfEnabled = import.meta.env.PUBLIC_HOPF_ENABLED !== "false";
+
 const {
-  posterSrc = "/hero-poster.webp",
+  posterSrc = "/hero-poster-dark.webp",
+  posterLightSrc = "/hero-poster-light.webp",
   fiberCount,
   autoRotate,
 } = Astro.props;
 ---
 
-<div class="hopf-hero" data-hopf-root data-fiber-count={fiberCount ?? ""} data-auto-rotate={autoRotate ?? ""}>
+<div
+  class="hopf-hero"
+  data-hopf-root
+  data-fiber-count={fiberCount ?? ""}
+  data-auto-rotate={autoRotate ?? ""}
+  data-hopf-enabled={String(hopfEnabled)}
+  data-poster-dark={posterSrc}
+  data-poster-light={posterLightSrc}
+>
   <img
     class="hopf-poster"
     src={posterSrc}
-    alt="Visualización de fibras de Hopf — remolinos azules entrelazados"
-    width="1200"
-    height="800"
+    alt=""
+    width="1600"
+    height="1000"
     fetchpriority="high"
     decoding="async"
     data-hopf-poster
@@ -30,16 +47,23 @@ const {
     data-hopf-canvas
     hidden
   ></canvas>
-  <p class="hopf-note" data-hopf-status role="status"></p>
+  <button
+    type="button"
+    class="hopf-toggle"
+    data-hopf-toggle
+    aria-pressed="false"
+    hidden
+  >Animar motion</button>
+  <p class="hopf-note sr-only" data-hopf-status role="status"></p>
 </div>
 
 <script>
   import {
     HOPF_ENABLED,
-    createHopfScene,
-    isMobileViewport,
+    createHopf2D,
     prefersReducedMotion,
-  } from "../lib/hopf-scene.ts";
+    readTheme,
+  } from "../lib/hopf-2d.ts";
 
   (function () {
     var root = document.querySelector("[data-hopf-root]");
@@ -53,46 +77,171 @@ const {
       if (status) status.textContent = msg;
     }
 
-    // Escape hatch + motion safety: freeze to poster frame.
-    if (!HOPF_ENABLED) {
-      say("Animación desactivada (poster).");
-      return;
+    function posterForTheme() {
+      var theme = readTheme();
+      var dark = root.getAttribute("data-poster-dark") || "/hero-poster-dark.webp";
+      var light = root.getAttribute("data-poster-light") || "/hero-poster-light.webp";
+      return theme === "light" ? light : dark;
     }
-    if (prefersReducedMotion()) {
-      say("Animación en pausa (movimiento reducido).");
+
+    function swapPoster() {
+      var next = posterForTheme();
+      var cur = poster.getAttribute("src");
+      if (cur !== next) poster.setAttribute("src", next);
+    }
+
+    // Themed poster swap before paint; keeps working on toggle (poster-only too).
+    swapPoster();
+    if (typeof MutationObserver !== "undefined") {
+      new MutationObserver(swapPoster).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
+    }
+
+    // Escape hatch: poster-only, no status banner (sr-only stays empty).
+    // Toggle stays hidden here: it is revealed only after hydrate succeeds.
+    var flag = root.getAttribute("data-hopf-enabled");
+    if (!HOPF_ENABLED || flag === "false") {
       return;
     }
 
+    // Tri-state hero motion mode. Default `auto` preserves current behavior;
+    // explicit `on`/`off` only ever results from a direct toggle gesture.
+    var MODE_KEY = "lamnda-hero-motion";
+    function readMode() {
+      try {
+        var v = localStorage.getItem(MODE_KEY);
+        return v === "on" || v === "off" ? v : "auto";
+      } catch (e) {
+        return "auto";
+      }
+    }
+    function writeMode(m) {
+      try {
+        localStorage.setItem(MODE_KEY, m);
+      } catch (e) {
+        // Private-mode storage: session-only, hydration continues.
+      }
+    }
+    // Effective reduced-motion flag. False means animating (drift).
+    function resolveEffective(osRM, mode) {
+      return mode === "on" ? false : mode === "off" ? true : osRM;
+    }
+
+    var toggle = root.querySelector("[data-hopf-toggle]");
+    var mode = readMode();
+    var reduced = resolveEffective(prefersReducedMotion(), mode);
     var started = false;
+
+    function paintToggle() {
+      if (!toggle) return;
+      var animating = !reduced;
+      toggle.setAttribute("aria-pressed", String(animating));
+      toggle.textContent = animating ? "Pausar motion" : "Animar motion";
+    }
+
+    function showCanvas() {
+      canvas.hidden = false;
+      poster.setAttribute("aria-hidden", "true");
+      // Keep poster underneath as fallback; canvas swaps in place (no CLS).
+      poster.style.opacity = "0";
+      poster.style.pointerEvents = "none";
+      say("");
+      // Reveal the toggle only once hydration succeeded (poster-first LCP).
+      if (toggle) {
+        paintToggle();
+        toggle.hidden = false;
+      }
+    }
+
     function hydrate() {
       if (started) return;
       started = true;
-      var fiberAttr = root.getAttribute("data-fiber-count");
-      var autoAttr = root.getAttribute("data-auto-rotate");
-      var opts = {};
-      if (fiberAttr) opts.fiberCount = parseInt(fiberAttr, 10) || undefined;
-      if (autoAttr === "true") opts.autoRotate = true;
-      else if (autoAttr === "false") opts.autoRotate = false;
-      else opts.autoRotate = isMobileViewport();
-      createHopfScene(canvas, opts)
-        .then(function () {
-          canvas.hidden = false;
-          poster.setAttribute("aria-hidden", "true");
-          // Keep poster underneath as fallback; canvas swaps in place (no CLS).
-          poster.style.opacity = "0";
-          poster.style.pointerEvents = "none";
-          say("");
-        })
-        .catch(function () {
-          say("No se pudo iniciar el 3D; mostrando imagen.");
-        });
+      try {
+        var handle = createHopf2D(canvas, { reducedMotion: reduced });
+        showCanvas();
+        if (reduced) {
+          // Single beauty frame is already painted inside createHopf2D;
+          // pointermove re-renders one frame each (handled in the module).
+          // Keep the handle alive; stop only on genuine teardown.
+          root._hopfHandle = handle;
+        } else {
+          root._hopfHandle = handle;
+        }
+      } catch (e) {
+        say("No se pudo iniciar la animación; mostrando imagen.");
+      }
     }
 
+    // Dispose the live handle and recreate it synchronously with the new
+    // effective flag. Resets drift phase by one frame; zero lib risk.
+    function swap(nextReduced) {
+      reduced = nextReduced;
+      var old = root._hopfHandle;
+      if (old && typeof old.dispose === "function") {
+        try {
+          old.dispose();
+        } catch (e) {}
+      }
+      root._hopfHandle = null;
+      try {
+        root._hopfHandle = createHopf2D(canvas, { reducedMotion: reduced });
+      } catch (e) {
+        say("Motion state unchanged; showing image.");
+        return;
+      }
+      paintToggle();
+      // Hero-only announcement; never implies an OS setting changed.
+      say(reduced ? "Hero motion off." : "Hero motion on.");
+    }
+
+    if (toggle) {
+      paintToggle();
+      toggle.addEventListener("click", function () {
+        // Binary flip of the live state; the first gesture leaves `auto`
+        // behind and persists an explicit per-site choice.
+        var next = reduced ? "on" : "off";
+        writeMode(next);
+        mode = next;
+        if (!started) {
+          reduced = resolveEffective(prefersReducedMotion(), mode);
+          paintToggle();
+          return;
+        }
+        swap(resolveEffective(prefersReducedMotion(), mode));
+      });
+    }
+
+    // OS reduced-motion changes re-resolve only while in `auto`;
+    // explicit `on`/`off` ignores them.
+    if (typeof window.matchMedia === "function") {
+      var rmQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      function onOsChange(e) {
+        if (readMode() !== "auto") return;
+        mode = "auto";
+        if (!started) {
+          reduced = resolveEffective(e.matches, "auto");
+          paintToggle();
+          return;
+        }
+        swap(resolveEffective(e.matches, "auto"));
+      }
+      if (typeof rmQuery.addEventListener === "function") {
+        rmQuery.addEventListener("change", onOsChange);
+      } else if (typeof rmQuery.addListener === "function") {
+        rmQuery.addListener(onOsChange);
+      }
+    }
+
+    // Reduced-motion still hydrates (single frame, zero rAF at rest).
     // Lazy-hydrate on idle AND visible (poster paints first for LCP).
     var visible = false;
     function maybeStart() {
-      if (visible) {
-        if ("requestIdleCallback" in window) {
+      if (visible && !started) {
+        if (reduced) {
+          hydrate();
+        } else if ("requestIdleCallback" in window) {
           requestIdleCallback(hydrate, { timeout: 2500 });
         } else {
           setTimeout(hydrate, 600);
@@ -117,14 +266,30 @@ const {
 
 <style>
   .hopf-hero {
-    position: relative;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    aspect-ratio: 3 / 2;
-    border-radius: var(--radius);
+    height: 100%;
     overflow: hidden;
-    background: radial-gradient(120% 120% at 70% 20%, #14304f 0%, #0a1628 60%);
-    border: 1px solid var(--border);
-    min-height: 320px;
+    background: var(--bg);
+  }
+  .hopf-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      90% 90% at 75% 38%,
+      rgb(46 140 255 / 0.16) 0%,
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+  html[data-theme="light"] .hopf-hero::before {
+    background: radial-gradient(
+      90% 90% at 75% 38%,
+      rgb(46 140 255 / 0.1) 0%,
+      transparent 60%
+    );
   }
   .hopf-poster,
   .hopf-canvas {
@@ -137,22 +302,42 @@ const {
   .hopf-poster {
     transition: opacity 0.5s ease;
   }
-  .hopf-note {
+  .hopf-toggle {
     position: absolute;
-    left: 0.8rem;
-    bottom: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin: 0;
+    left: 0.9rem;
+    bottom: 1.2rem;
+    z-index: 2;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
   }
-  .hopf-note:empty {
+  .hopf-toggle:focus-visible {
+    outline: 3px solid var(--text);
+    outline-offset: 2px;
+  }
+  .hopf-toggle[hidden] {
     display: none;
   }
-  @media (max-width: 900px) {
-    .hopf-hero {
-      min-height: 0;
-      aspect-ratio: 4 / 3;
-      max-width: 100%;
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hopf-poster {
+      transition: none;
     }
   }
 </style>

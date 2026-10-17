@@ -9,6 +9,7 @@ bullets:
   - "Trazabilidad completa de entrega y lectura"
 lang: "es"
 card: "full"
+outcome: "Cada evento crítico llega a la persona correcta, por el canal correcto, sin perseguirlo."
 ---
 
 Alertas que respetan el tiempo de tu equipo: solo lo urgente interrumpe, el resto se resume.

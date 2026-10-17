@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fibración de Hopf</title>
+<style>
+:root{--bg:#f3f5f4;--fg:#14232b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a22;--fg:#e6efee}}
+:root[data-theme="dark"]{--bg:#0e1a22;--fg:#e6efee}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+</style></head><body>
+<canvas id="c" aria-label="Fibración de Hopf: mueve el mouse para cambiar el punto de la esfera base"></canvas>
+<script>
+const C=document.getElementById('c'),g=C.getContext('2d');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let W,H,D;
+function fit(){D=window.devicePixelRatio||1;W=innerWidth;H=innerHeight;C.width=W*D;C.height=H*D;g.setTransform(D,0,0,D,0,0)}
+addEventListener('resize',fit);fit();
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+// objetivo (según el mouse) y estado suavizado
+let tg={th:Math.PI/2,ph:0},cur={th:Math.PI/2,ph:0},yaw=0.5,pitch=0.45,tp=0.45;
+function aim(e){const x=e.clientX/W,y=e.clientY/H;
+ tg.th=Math.PI*(0.1+0.8*x);          // arriba→abajo: latitud
+ tg.ph=y*2*Math.PI;                  // izquierda→derecha: longitud
+ tp=0.15+0.7*x;}                     // la cámara se inclina un poco
+addEventListener('pointermove',aim);addEventListener('pointerdown',aim);
+const hue=ph=>`hsl(${((ph/(2*Math.PI))*360+360)%360},80%,58%)`;
+const M=[1,0,0,0,1,0,0,0,1];let T=0;
+function spin(){T+=0.016;
+ const w=[0.9*Math.sin(T*0.37)+0.45,0.8*Math.sin(T*0.23+1)+0.4,0.7*Math.sin(T*0.31+2)+0.35],n=Math.hypot(w[0],w[1],w[2]);
+ if(n<1e-6)return;const a=n*0.016,k=[w[0]/n,w[1]/n,w[2]/n],c=Math.cos(a),s=Math.sin(a),v=1-c;
+ const R=[c+k[0]*k[0]*v,k[0]*k[1]*v-k[2]*s,k[0]*k[2]*v+k[1]*s,k[1]*k[0]*v+k[2]*s,c+k[1]*k[1]*v,k[1]*k[2]*v-k[0]*s,k[2]*k[0]*v-k[1]*s,k[2]*k[1]*v+k[0]*s,c+k[2]*k[2]*v];
+ const N=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++)N[i*3+j]=R[i*3]*M[j]+R[i*3+1]*M[3+j]+R[i*3+2]*M[6+j];
+ const nm=u=>{const l=Math.hypot(u[0],u[1],u[2]);return[u[0]/l,u[1]/l,u[2]/l]};
+ const r0=nm(N.slice(0,3));let r1=N.slice(3,6);const d=r1[0]*r0[0]+r1[1]*r0[1]+r1[2]*r0[2];r1=nm([r1[0]-d*r0[0],r1[1]-d*r0[1],r1[2]-d*r0[2]]);
+ const r2=[r0[1]*r1[2]-r0[2]*r1[1],r0[2]*r1[0]-r0[0]*r1[2],r0[0]*r1[1]-r0[1]*r1[0]];
+ M.splice(0,9,...r0,...r1,...r2)}
+function rot(x,y,z){const m=M,p=m[0]*x+m[1]*y+m[2]*z,q=m[3]*x+m[4]*y+m[5]*z,e=m[6]*x+m[7]*y+m[8]*z;x=p;y=q;z=e;const c=1,s=0;let X=c*x+s*z,Z=-s*x+c*z;
+ const c2=Math.cos(pitch),s2=Math.sin(pitch);return[X,c2*y-s2*Z,s2*y+c2*Z]}
+// fibra: (z1,z2)=(cos(th/2)e^{it}, sin(th/2)e^{i(t+ph)}) → proyección estereográfica
+function fiber(th,ph,N=150){const a=Math.cos(th/2),b=Math.sin(th/2),p=[];
+ for(let i=0;i<=N;i++){const t=i/N*2*Math.PI,d=1-b*Math.sin(t+ph);
+  p.push(d<0.07?null:[a*Math.cos(t)/d,a*Math.sin(t)/d,b*Math.cos(t+ph)/d])}return p}
+function stroke(pts,col,lw,al){g.strokeStyle=col;g.lineWidth=lw;g.globalAlpha=al;g.beginPath();
+ const S=Math.min(W,H)*0.17;let pen=false;
+ for(const q of pts){if(!q||Math.hypot(q[0],q[1],q[2])>7){pen=false;continue}
+  const r=rot(q[0],q[1],q[2]),f=1/(1-r[2]*0.06),x=W/2+r[0]*S*f,y=H/2-r[1]*S*f;
+  pen?g.lineTo(x,y):g.moveTo(x,y);pen=true}g.stroke();g.globalAlpha=1}
+function frame(){
+ cur.th+=(tg.th-cur.th)*0.12;
+ let d=tg.ph-cur.ph;cur.ph+=d*0.12;
+ pitch+=(tp-pitch)*0.08;spin();
+ g.clearRect(0,0,W,H);g.lineCap='round';
+ const n=36;for(let k=0;k<n;k++){const ph=k/n*2*Math.PI;stroke(fiber(cur.th,ph),hue(ph),1.6,0.7)}
+ stroke(fiber(cur.th,cur.ph),css('--fg'),6,1);stroke(fiber(cur.th,cur.ph),hue(cur.ph),3,1);
+ requestAnimationFrame(frame)}
+frame();
+</script></body></html>

@@ -1,0 +1,602 @@
+---
+/* Service detail template: collections-driven static routes, zero-cost static. */
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const all = await getCollection("services");
+  return all.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const isFull = entry.data.card === "full";
+const bodyText = (entry.body ?? "").trim();
+
+const pillarLabel: Record<string, string> = {
+  data: "Data Science",
+  security: "Cybersecurity",
+  automation: "Automations",
+};
+
+/* SEO: page-specific title, derived description capped at 155 chars, canonical per slug. */
+const pageTitle = `${entry.data.title} — Lamnda`;
+const rawDesc = entry.data.outcome ?? entry.data.summary;
+const pageDesc = rawDesc.length > 155 ? rawDesc.slice(0, 152).trimEnd() + "..." : rawDesc;
+const canonical = `https://lamnda.example.com/servicios/${entry.slug}`;
+const heroSub = isFull ? (entry.data.outcome ?? entry.data.summary) : entry.data.summary;
+
+/* Value bullets: full = 3 frontmatter + 1 body-derived; summary = 1 + body + 2 generic practice rows. */
+const genericRows = [
+  "Acompañamiento para empezar por un caso acotado",
+  "Revisión humana y trazabilidad en cada paso",
+];
+const valueBullets: string[] = isFull
+  ? [...entry.data.bullets, bodyText].filter(Boolean).slice(0, 4)
+  : [entry.data.bullets[0], bodyText, ...genericRows].filter(Boolean).slice(0, 4);
+
+const isNotif = entry.slug === "notificaciones-inteligentes";
+---
+
+<Base title={pageTitle} description={pageDesc} canonical={canonical} lang="es">
+  <Header />
+  <main id="main">
+    <div class="wrap">
+      <nav aria-label="breadcrumb" class="crumbs">
+        <a href="/#services">Servicios</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{entry.data.title}</span>
+      </nav>
+
+      <header class="detail-hero">
+        <p class="pillar-tag">{pillarLabel[entry.data.pillar]}</p>
+        <h1>{entry.data.title}</h1>
+        <p class="detail-sub">{heroSub}</p>
+        {entry.data.draftLabel && <p class="draft-badge">{entry.data.draftLabel}</p>}
+      </header>
+
+      <section class="detail-values" aria-labelledby="valor-heading">
+        <h2 id="valor-heading">Qué incluye</h2>
+        <ul class="value-list">
+          {valueBullets.map((b) => <li>{b}</li>)}
+        </ul>
+      </section>
+
+      <section class="detail-demo" aria-labelledby="ejemplo-heading">
+        <h2 id="ejemplo-heading">Ejemplo</h2>
+
+        {entry.slug === "notificaciones-inteligentes" && (
+          <figure class="demo-figure">
+            <div class="demo-mock notif-mock" role="img" aria-label="Mock ilustrativo de centro de notificaciones priorizadas">
+              <div class="notif-tabs" role="group" aria-label="Filtrar notificaciones">
+                <button type="button" data-filter="all" aria-pressed="true">Todas</button>
+                <button type="button" data-filter="urgent" aria-pressed="false">Urgentes</button>
+                <button type="button" data-filter="summary" aria-pressed="false">Resumen</button>
+              </div>
+              <div class="notif-featured" data-kind="urgent">
+                <span class="notif-dot" aria-hidden="true"></span>
+                <span class="notif-lines"><strong>Alerta prioritaria</strong><span>Contacto correcto, canal correcto</span></span>
+                <span class="chip">WhatsApp</span>
+              </div>
+              <div class="notif-row" data-kind="urgent">
+                <span class="notif-dot" aria-hidden="true"></span>
+                <span class="notif-lines"><strong>Aviso urgente</strong><span>Requiere atención hoy</span></span>
+                <span class="chip">SMS</span>
+              </div>
+              <div class="notif-row" data-kind="summary">
+                <span class="notif-dot is-soft" aria-hidden="true"></span>
+                <span class="notif-lines"><strong>Resumen diario</strong><span>Lo demás, agrupado</span></span>
+                <span class="chip">Correo</span>
+              </div>
+              <div class="notif-row" data-kind="summary">
+                <span class="notif-dot is-soft" aria-hidden="true"></span>
+                <span class="notif-lines"><strong>Lectura confirmada</strong><span>Trazabilidad completa</span></span>
+                <span class="chip">Push</span>
+              </div>
+              <div class="chip-row" aria-hidden="true">
+                <span>Correo</span><span>SMS</span><span>WhatsApp</span><span>Push</span>
+              </div>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "documentacion-automatizada" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de flujo de documento automatizado">
+              <div class="pipe">
+                <div class="pipe-step"><strong>Fuente</strong><span>CRM y hojas de cálculo</span></div>
+                <span class="pipe-arrow" aria-hidden="true">→</span>
+                <div class="pipe-step"><strong>Plantilla</strong><span>Identidad versionada</span></div>
+                <span class="pipe-arrow" aria-hidden="true">→</span>
+                <div class="pipe-step"><strong>Documento</strong><span>Listo para firmar</span></div>
+              </div>
+              <p class="human-chip">Revisión humana antes de enviar</p>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "bots-crm" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de asignación automática en CRM">
+              <div class="rule-grid">
+                <div class="rule-card"><strong>Regla</strong><span>Nuevo contacto, asignación por territorio</span></div>
+                <span class="pipe-arrow" aria-hidden="true">→</span>
+                <div class="rule-card"><strong>Asignado</strong><span>Equipo comercial con contexto</span></div>
+              </div>
+              <div class="chip-row" aria-hidden="true">
+                <span>Captura</span><span>Enriquece</span><span>Asigna</span>
+              </div>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "tele-agentes-ia" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de guion supervisado de llamada">
+              <div class="call-card">
+                <strong>Guion supervisado</strong>
+                <ul class="call-list">
+                  <li>Saludo y motivo de la llamada</li>
+                  <li>Calificación breve y amable</li>
+                  <li>Agendamiento o seguimiento</li>
+                </ul>
+                <p class="ticks">Registro total · Guion auditable</p>
+                <p class="human-chip">Supervisión humana siempre</p>
+              </div>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "lead-scoring" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de lista priorizada de prospectos">
+              <div class="score-list">
+                <div class="score-row"><span>Alta</span><i class="bar bar-hi" aria-hidden="true"></i></div>
+                <div class="score-row"><span>Media</span><i class="bar bar-mid" aria-hidden="true"></i></div>
+                <div class="score-row"><span>Baja</span><i class="bar bar-lo" aria-hidden="true"></i></div>
+              </div>
+              <p class="score-note">Cada lead llega con contexto y prioridad</p>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "marketing-bots" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de segmentos y mensaje de campaña">
+              <div class="chip-row" aria-hidden="true">
+                <span>Visitantes</span><span>Clientes</span><span>Inactivos</span>
+              </div>
+              <div class="msg-card">
+                <strong>Mensaje que mantiene tu tono</strong>
+                <span>Hola, ¿te ayudamos a avanzar hoy?</span>
+              </div>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "dashboards-dinamicos" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de tablero dinámico">
+              <svg viewBox="0 0 320 150" width="100%" height="auto" aria-hidden="true">
+                <rect x="0" y="0" width="320" height="150" rx="12" fill="var(--surface)" />
+                <rect x="16" y="16" width="120" height="14" rx="7" fill="var(--primary-text)" opacity="0.8" />
+                <rect x="16" y="40" width="88" height="10" rx="5" fill="var(--muted)" opacity="0.6" />
+                <polyline
+                  points="20,130 55,110 90,118 125,90 160,98 195,76 230,84"
+                  fill="none"
+                  stroke="var(--primary-text)"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+                <circle cx="276" cy="108" r="22" fill="none" stroke="var(--primary-text)" stroke-width="6" stroke-dasharray="90 60" />
+              </svg>
+              <div class="tile-row" aria-hidden="true">
+                <span>Sede</span><span>Equipo</span><span>Periodo</span>
+              </div>
+              <div class="chip-row" aria-hidden="true">
+                <span>Tiempo real</span><span>Filtros</span><span>Exportación</span>
+              </div>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+
+        {entry.slug === "agendamiento-automatico" && (
+          <figure class="demo-figure">
+            <div class="demo-mock" role="img" aria-label="Mock ilustrativo de flujo de agenda automática">
+              <div class="chip-row" aria-hidden="true">
+                <span>Mañana</span><span>09:00</span><span>11:30</span><span>16:00</span>
+              </div>
+              <div class="flow">
+                <span>Propuesta</span>
+                <span aria-hidden="true">→</span>
+                <span>Confirmación</span>
+                <span aria-hidden="true">→</span>
+                <span>Recordatorio</span>
+              </div>
+              <p class="flow-note">Reprogramación sin llamadas de más</p>
+            </div>
+            <figcaption>Mock ilustrativo — sin datos reales</figcaption>
+          </figure>
+        )}
+      </section>
+
+      <div class="detail-cta">
+        <a class="cta-primary" href="/#contact">Solicita una demo</a>
+        <a class="cta-ghost" href="/#services">Volver a servicios</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+{isFull && isNotif && (
+  <script is:inline>
+    // Tabs filter enhancement; static rows are the no-JS fallback.
+    (function () {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var root = document.querySelector(".notif-mock");
+      if (!root) return;
+      var btns = Array.prototype.slice.call(root.querySelectorAll("[data-filter]"));
+      var rows = Array.prototype.slice.call(root.querySelectorAll("[data-kind]"));
+      btns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var f = btn.getAttribute("data-filter");
+          btns.forEach(function (b) {
+            b.setAttribute("aria-pressed", String(b === btn));
+          });
+          rows.forEach(function (r) {
+            var show = f === "all" || r.getAttribute("data-kind") === f;
+            r.hidden = !show;
+          });
+        });
+      });
+    })();
+  </script>
+)}
+
+<style>
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem 0.9rem 3rem;
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 1.4rem;
+  }
+  .detail-hero {
+    display: grid;
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .pillar-tag {
+    display: inline-block;
+    justify-self: start;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    margin: 0;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    line-height: 1.12;
+    margin: 0;
+  }
+  .detail-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 0;
+    max-width: 44rem;
+  }
+  .draft-badge {
+    display: inline-block;
+    justify-self: start;
+    font-size: 0.78rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 0.2rem 0.6rem;
+    margin: 0;
+  }
+  .detail-values h2,
+  .detail-demo h2 {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    margin: 0 0 0.9rem;
+  }
+  .detail-values {
+    margin-bottom: 2rem;
+  }
+  .value-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.6rem;
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .demo-figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+  }
+  .demo-mock {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .demo-figure figcaption {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.7rem;
+  }
+  .notif-tabs {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .notif-tabs button {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .notif-tabs button[aria-pressed="true"] {
+    color: var(--bg);
+    background: var(--primary-text);
+    border-color: var(--primary-text);
+  }
+  .notif-featured,
+  .notif-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+  }
+  .notif-featured {
+    border-color: var(--primary-text);
+  }
+  .notif-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--primary-text);
+    flex: none;
+  }
+  .notif-dot.is-soft {
+    background: var(--muted);
+    opacity: 0.6;
+  }
+  .notif-lines {
+    display: grid;
+    gap: 0.1rem;
+    flex: 1;
+    font-size: 0.88rem;
+  }
+  .notif-lines span {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .chip,
+  .chip-row span {
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    color: var(--primary-text);
+    white-space: nowrap;
+  }
+  .chip-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .chip-row span {
+    color: var(--muted);
+  }
+  .pipe {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .pipe-step {
+    flex: 1;
+    min-width: 7rem;
+    display: grid;
+    gap: 0.2rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem;
+    background: var(--surface);
+    font-size: 0.85rem;
+  }
+  .pipe-step span {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .pipe-arrow {
+    align-self: center;
+    color: var(--primary-text);
+  }
+  .human-chip {
+    margin: 0;
+    justify-self: start;
+    font-size: 0.82rem;
+    color: var(--primary-text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    background: var(--surface);
+  }
+  .rule-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .rule-card {
+    flex: 1;
+    min-width: 8rem;
+    display: grid;
+    gap: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem;
+    background: var(--surface);
+    font-size: 0.85rem;
+  }
+  .rule-card span {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .call-card {
+    display: grid;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+  }
+  .call-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+    display: grid;
+    gap: 0.35rem;
+  }
+  .ticks {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .score-list {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .bar {
+    display: block;
+    height: 0.65rem;
+    border-radius: 999px;
+    background: var(--primary-text);
+    opacity: 0.8;
+  }
+  .bar-hi {
+    width: 7rem;
+  }
+  .bar-mid {
+    width: 4.5rem;
+    opacity: 0.6;
+  }
+  .bar-lo {
+    width: 2.5rem;
+    opacity: 0.4;
+  }
+  .score-note,
+  .flow-note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .msg-card {
+    display: grid;
+    gap: 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
+    background: var(--surface);
+    font-size: 0.88rem;
+  }
+  .msg-card span {
+    color: var(--muted);
+  }
+  .tile-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .tile-row span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 0.25rem 0.7rem;
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    font-size: 0.88rem;
+  }
+  .detail-cta {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 2.2rem;
+  }
+  .cta-primary {
+    background: var(--primary-text);
+    color: var(--bg);
+    text-decoration: none;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .cta-ghost {
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.75rem 1.4rem;
+    border-radius: 999px;
+  }
+  @media (max-width: 600px) {
+    .wrap {
+      padding-top: 1.6rem;
+    }
+    .demo-figure {
+      padding: 1rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cta-primary,
+    .cta-ghost {
+      transition: none;
+    }
+  }
+</style>

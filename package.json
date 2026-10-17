@@ -2,7 +2,7 @@
   "name": "lamnda-marketing-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Lamnda SAS static marketing site (Astro + Three.js Hopf hero island).",
+  "description": "Lamnda SAS static marketing site (Astro + 2D Hopf hero island).",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
@@ -10,15 +10,14 @@
     "preview": "astro preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "generate:poster": "node scripts/generate-poster.mjs"
+    "generate:poster": "node scripts/generate-poster.mjs",
+    "capture:poster": "node scripts/capture-poster.mjs"
   },
   "dependencies": {
-    "astro": "^5.13.0",
-    "three": "^0.170.0"
+    "astro": "^5.13.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
-    "@types/three": "^0.170.0",
     "sharp": "^0.33.5",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8"

@@ -7,8 +7,8 @@ export default defineConfig({
   site: "https://lamnda.example.com",
   vite: {
     build: {
-      // Keep single-purpose chunks readable; hero three.js is lazy-imported
-      // inside the island so it never blocks first paint.
+      // Keep single-purpose chunks readable; hero 2D canvas is a small
+      // sync import (<15KB gzip) that hydrates on idle+visible only.
       chunkSizeWarningLimit: 220,
     },
   },

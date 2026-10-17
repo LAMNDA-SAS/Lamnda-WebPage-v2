@@ -2,26 +2,33 @@
 /* Site header: sticky nav with anchor links + theme toggle. */
 ---
 
-<header class="site-header">
+<header class="site-header" data-site-header>
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="Lamnda — inicio">
-      <span class="brand-mark" aria-hidden="true">λ</span>
+    <a class="brand" href="/#top" aria-label="Lamnda — inicio">
+      <img
+        class="brand-shield"
+        src="/logos/lamnda-mark.png"
+        alt="Lamnda"
+        width="32"
+        height="32"
+        decoding="async"
+      />
       <span class="brand-name">Lamnda</span>
     </a>
     <nav class="nav" aria-label="Navegación principal">
-      <a href="#top">Home</a>
-      <a href="#services">Solutions</a>
-      <a href="#pillars" data-pillar-link="data">Data Science</a>
-      <a href="#pillars" data-pillar-link="security">Cybersecurity</a>
-      <a href="#pillars" data-pillar-link="automation">Automations</a>
-      <a href="#vision">About</a>
+      <a href="/#top" aria-current="page">Home</a>
+      <a href="/#services">Solutions</a>
+      <a href="/#pillars" data-pillar-link="data">Data Science</a>
+      <a href="/#pillars" data-pillar-link="security">Cybersecurity</a>
+      <a href="/#pillars" data-pillar-link="automation">Automations</a>
+      <a href="/#vision">About</a>
     </nav>
     <div class="actions">
       <button type="button" data-theme-toggle aria-pressed="false" aria-label="Cambiar tema">
         <span aria-hidden="true">◐</span>
         <span data-theme-label>Oscuro</span>
       </button>
-      <a class="cta-small" href="#contact">Get in touch</a>
+      <a class="cta-small" href="/#contact">Get in touch <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </header>
@@ -33,7 +40,13 @@
     z-index: 50;
     backdrop-filter: blur(12px);
     background: color-mix(in srgb, var(--bg) 82%, transparent);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+  .site-header.scrolled {
+    border-bottom-color: var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(16px);
   }
   .wrap {
     max-width: 1120px;
@@ -53,15 +66,17 @@
     font-weight: 700;
     margin-right: auto;
   }
-  .brand-mark {
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
+  .brand-shield {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
     border-radius: 8px;
-    background: var(--primary);
-    color: #fff;
-    font-size: 1.2rem;
+  }
+  html[data-theme="dark"] .brand-shield {
+    filter: drop-shadow(0 0 12px rgb(46 140 255 / 0.35));
+  }
+  .brand-name {
+    color: var(--text);
   }
   .nav {
     display: flex;
@@ -75,6 +90,13 @@
   }
   .nav a:hover {
     color: var(--text);
+  }
+  .nav a[aria-current="page"] {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--primary-text);
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
   }
   .actions {
     display: flex;
@@ -91,8 +113,10 @@
     font-size: 0.85rem;
   }
   .cta-small {
-    background: var(--primary-text);
-    color: #fff;
+    background: transparent;
+    border: 1px solid var(--primary-text);
+    /* AA: --primary-text on --bg both themes (dark #7AB3FF on #0A1628 ~7:1, light #0A54C2 on #fff ~7.5:1) */
+    color: var(--primary-text);
     text-decoration: none;
     padding: 0.45rem 0.9rem;
     border-radius: 999px;
@@ -100,7 +124,7 @@
     font-weight: 600;
   }
   html[data-theme="light"] .cta-small {
-    color: #fff;
+    color: var(--primary-text);
   }
   @media (max-width: 860px) {
     .nav {

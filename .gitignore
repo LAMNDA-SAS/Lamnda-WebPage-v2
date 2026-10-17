@@ -24,3 +24,8 @@ playwright/.cache/
 
 # Vitest
 coverage/
+
+# Local verification evidence (kept out of the repository)
+*-out.txt
+*-verify-*.txt
+verify-evidence/

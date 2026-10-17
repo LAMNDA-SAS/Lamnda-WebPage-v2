@@ -9,6 +9,7 @@ bullets:
   - "Revisión humana antes de enviar"
 lang: "es"
 card: "full"
+outcome: "Del dato disperso al documento listo para firmar, con revisión humana incluida."
 ---
 
 Contratos, reportes y propuestas sin copiar-pegar: una sola fuente de verdad.

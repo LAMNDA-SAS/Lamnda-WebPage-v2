@@ -5,12 +5,13 @@ const pillarEnum = z.enum(["data", "security", "automation"]);
 export const service = z.object({
   title: z.string(),
   pillar: pillarEnum,
-  priority: z.number().int().min(1).max(7),
+  priority: z.number().int().min(1).max(8),
   summary: z.string(),
   bullets: z.array(z.string()).max(5),
   lang: z.enum(["es", "en"]),
   card: z.enum(["full", "summary"]),
   draftLabel: z.string().optional(),
+  outcome: z.string().optional(),
 });
 
 export const pillar = z.object({

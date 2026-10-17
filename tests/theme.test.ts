@@ -36,6 +36,34 @@ describe("theme AA pairs", () => {
   });
 });
 
+describe("CTA button inverse pairs (verify remediation: dark white-on-#7AB3FF was 2.16:1 FAIL)", () => {
+  it("dark CTA pair #0A1628 on #7AB3FF passes AA (>= 4.5:1)", () => {
+    expect(contrast("#0A1628", "#7AB3FF")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("light CTA pair white on #0A54C2 passes AA (>= 4.5:1)", () => {
+    expect(contrast("#FFFFFF", "#0A54C2")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("dark CTA styles use #0A1628 text (not white) on --primary-text", () => {
+    const index = readFileSync(join(__dirname, "../src/pages/index.astro"), "utf8");
+    const header = readFileSync(join(__dirname, "../src/components/Header.astro"), "utf8");
+    const base = readFileSync(join(__dirname, "../src/layouts/Base.astro"), "utf8");
+    // Filled pills (hero CTA in index, Base CTA) keep dark #0a1628 text.
+    for (const [name, src] of [["index.astro", index], ["Base.astro", base]] as const) {
+      expect(src, `${name} must set dark CTA text to #0a1628`).toContain("#0a1628");
+    }
+    // v4 header CTA is an outline pill: transparent bg, primary-text border/text (AA both themes).
+    expect(header, "Header.astro must use a transparent outline CTA").toContain("transparent");
+    expect(header, "Header.astro CTA must border with --primary-text").toContain("1px solid var(--primary-text)");
+    expect(header, "Header.astro CTA must set text to --primary-text").toContain("color: var(--primary-text)");
+    // Light theme keeps white CTA text (6.86:1 on #0A54C2 passes).
+    for (const [name, src] of [["index.astro", index], ["Header.astro", header], ["Base.astro", base]] as const) {
+      expect(src, `${name} must keep light CTA override`).toContain('html[data-theme="light"]');
+    }
+  });
+});
+
 describe("EN headline exception", () => {
   const EN = "Complex problems. Elegant solutions.";
 

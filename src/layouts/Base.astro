@@ -14,7 +14,7 @@ const {
   title,
   description,
   canonical = "https://lamnda.example.com/",
-  ogImage = "https://lamnda.example.com/hero-poster.webp",
+  ogImage = "https://lamnda.example.com/hero-poster-dark.webp",
   lang = "es",
 } = Astro.props;
 ---
@@ -37,11 +37,22 @@ const {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="theme-color" content="#0A1628" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link
       rel="preload"
       as="image"
-      href="/hero-poster.webp"
+      href="/hero-poster-dark.webp"
       fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/hero-poster-light.webp"
+      fetchpriority="high"
+      media="(prefers-color-scheme: light)"
     />
     <script is:inline>
       // Anti-FOUC: apply stored theme before first paint; spec default is dark.
@@ -53,6 +64,15 @@ const {
         document.documentElement.setAttribute("data-theme", "dark");
       }
     </script>
+    <noscript>
+      <style>
+        /* No-JS fallback: reveal-hidden sections must stay visible. */
+        [data-reveal] {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
     <style is:inline>
       html:not([data-theme]) {
         background: #0a1628;
@@ -99,7 +119,8 @@ const {
         left: -9999px;
         top: 0;
         background: var(--primary-text);
-        color: #fff;
+        /* AA: dark #0A1628 on #7AB3FF = 8.39:1 (white-on-#7AB3FF was 2.16:1 FAIL) */
+        color: #0a1628;
         padding: 0.6rem 1rem;
         z-index: 100;
         border-radius: 0 0 8px 0;

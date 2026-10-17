@@ -30,11 +30,25 @@
 
 | Evidence | Result |
 |---|---|
-| Focused test command and exact result | `npx vitest run` — 2 files, 11/11 passed |
-| E2E command and exact result | `npx playwright test` — 18/18 passed (desktop + mobile) |
+| Focused test command and exact result | `npx vitest run` — 2 files, 14/14 passed (theme 8 + hopf 6) |
+| E2E command and exact result | `npx playwright test` — 20/20 passed (desktop + mobile, incl. new CTA computed-style test) |
+| Build command and exact result | `npm run build` — exit 0, 1 page in ~2.3s, hero JS gzip 177.02 + 2.59 kB |
 | Static HTML checks | `node scripts/check-html.mjs` — 20/20 PASS (order, cards, SEO, poster attrs, TBD) |
 | Runtime harness | `npm run preview` + `npm run dev` load `/` — page renders, hero hydrates on idle+visible |
-| Rollback boundary | Revert initial commit(s); hero escape hatch `PUBLIC_HOPF_ENABLED=false` → poster-only |
+| Rollback boundary | Remediation reverts cleanly: `src/pages/index.astro` CTA + submit styles, `src/components/Header.astro` `.cta-small`, `src/layouts/Base.astro` `.skip-link`, `tests/theme.test.ts`, `tests/e2e/site.spec.ts` — no other behavior touched |
+
+## Remediation (verify FAIL → fix, 2026-10-10)
+
+**Blocker**: verify-report `evidence_revision sha256:d650f523…` — dark CTA white on `#7AB3FF` = 2.16:1 < 4.5:1 (WCAG AA Contrast, scenario `Contrast gate`). Light CTA 6.86:1 passed; token pairs passed.
+
+**Fix** (per verify recommendation, dark text `#0A1628` on `#7AB3FF` = 8.39:1; light kept as-is):
+- `src/pages/index.astro`: `.cta-primary` base text `#fff` → `#0a1628` (dark); light override `html[data-theme="light"] .cta-primary { color:#fff }` unchanged. `.contact-form button` base → `#0a1628` + added `html[data-theme="light"] .contact-form button { color:#fff }` (previously had no light override).
+- `src/components/Header.astro`: `.cta-small` base → `#0a1628`; light override unchanged. (`.brand-mark` white-on-`--primary` untouched — large display glyph, out of scope.)
+- `src/layouts/Base.astro`: `.skip-link` base → `#0a1628`; light override unchanged.
+- `tests/theme.test.ts`: +3 asserts (dark CTA pair, light CTA pair, dark-uses-`#0a1628` + light-override source check) — 5 → 8 tests.
+- `tests/e2e/site.spec.ts`: +1 test `CTA computed-style pairs meet AA in both themes` (dark `rgb(10,22,40)` on `rgb(122,179,255)`; light `rgb(255,255,255)` on `rgb(10,84,194)`) — 9 → 10 tests × desktop/mobile.
+
+**Re-verified gates**: build exit 0 · vitest 14/14 · playwright 20/20. CTA dark 8.39:1 / light 6.86:1 (unit-asserted).
 
 ## Verify Gates (measured)
 
@@ -81,7 +95,7 @@
 
 ## Remaining Tasks
 
-None — 18/18 complete. Ready for verify.
+Remediation complete — 18/18 + scoped CTA fix verified. Ready for re-verify (do NOT archive).
 
 ## Workload / PR Boundary
 
