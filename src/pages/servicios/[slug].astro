@@ -19,17 +19,17 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const bodyText = (entry.body ?? "").trim();
+const baseUrl = import.meta.env.BASE_URL;
 
 const pillarLabel: Record<string, string> = {
   data: "Data Science",
   automation: "Automations",
 };
 
-/* SEO: page-specific title, derived description capped at 155 chars, canonical per slug. */
+/* SEO: page-specific title, derived description capped at 155 chars. */
 const pageTitle = `${entry.data.title} — Lamnda`;
 const rawDesc = entry.data.outcome ?? entry.data.summary;
 const pageDesc = rawDesc.length > 155 ? rawDesc.slice(0, 152).trimEnd() + "..." : rawDesc;
-const canonical = `https://lamnda.example.com/servicios/${entry.slug}`;
 const heroSub = entry.data.outcome ?? entry.data.summary;
 
 /* Value bullets: 3 frontmatter + 1 body-derived, the same shape for every
@@ -39,19 +39,19 @@ const valueBullets: string[] = [...entry.data.bullets, bodyText]
   .slice(0, 4);
 ---
 
-<Base title={pageTitle} description={pageDesc} canonical={canonical} lang="es">
+<Base title={pageTitle} description={pageDesc} lang="es">
   <Header />
   <main id="main">
     <div class="wrap">
       {/* Visible back control above the breadcrumb; outside the h1 flow.
           Same target the breadcrumb "Servicios" uses. */}
       <div class="back-row">
-        <a class="back-link" href="/#services">
+        <a class="back-link" href={`${baseUrl}#services`}>
           <span class="back-arrow" aria-hidden="true">←</span> Volver a Servicios
         </a>
       </div>
       <nav aria-label="breadcrumb" class="crumbs">
-        <a href="/#services">Servicios</a>
+        <a href={`${baseUrl}#services`}>Servicios</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">{entry.data.title}</span>
       </nav>
@@ -143,8 +143,8 @@ const valueBullets: string[] = [...entry.data.bullets, bodyText]
       </section>
 
       <div class="detail-cta">
-        <a class="cta-primary" href="/#contact">Solicita una demo</a>
-        <a class="cta-ghost" href="/#services">Volver a servicios</a>
+        <a class="cta-primary" href={`${baseUrl}#contact`}>Solicita una demo</a>
+        <a class="cta-ghost" href={`${baseUrl}#services`}>Volver a servicios</a>
       </div>
     </div>
   </main>

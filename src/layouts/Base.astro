@@ -10,13 +10,12 @@ export interface Props {
   lang?: string;
 }
 
-const {
-  title,
-  description,
-  canonical = "https://lamnda.example.com/",
-  ogImage = "https://lamnda.example.com/hero-poster-dark.webp",
-  lang = "es",
-} = Astro.props;
+const { title, description, canonical, ogImage, lang = "es" } = Astro.props;
+
+const baseUrl = import.meta.env.BASE_URL;
+const site = Astro.site ?? Astro.url;
+const canonicalURL = new URL(canonical ?? Astro.url.pathname, site);
+const socialImage = new URL(ogImage ?? `${baseUrl}hero-poster-dark.webp`, site);
 ---
 
 <!doctype html>
@@ -26,31 +25,31 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    <link rel="canonical" href={canonicalURL.href} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage.href} />
+    <meta property="og:url" content={canonicalURL.href} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={socialImage.href} />
     <meta name="theme-color" content="#0A1628" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${baseUrl}favicon-32.png`} />
+    <link rel="icon" type="image/png" sizes="16x16" href={`${baseUrl}favicon-16.png`} />
+    <link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
+    <link rel="apple-touch-icon" sizes="180x180" href={`${baseUrl}apple-touch-icon.png`} />
     <link
       rel="preload"
       as="image"
-      href="/hero-poster-dark.webp"
+      href={`${baseUrl}hero-poster-dark.webp`}
       fetchpriority="high"
     />
     <link
       rel="preload"
       as="image"
-      href="/hero-poster-light.webp"
+      href={`${baseUrl}hero-poster-light.webp`}
       fetchpriority="high"
       media="(prefers-color-scheme: light)"
     />

@@ -1,13 +1,14 @@
 ---
 /* Site header: sticky nav with anchor links + theme toggle. */
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <header class="site-header" data-site-header>
   <div class="wrap">
-    <a class="brand" href="/#top" aria-label="Lamnda — inicio">
+    <a class="brand" href={`${baseUrl}#top`} aria-label="Lamnda — inicio">
       <img
         class="brand-shield"
-        src="/logos/lamnda-mark.png"
+        src={`${baseUrl}logos/lamnda-mark.png`}
         alt="Lamnda"
         width="32"
         height="32"
@@ -16,18 +17,18 @@
       <span class="brand-name">Lamnda</span>
     </a>
     <nav class="nav" aria-label="Navegación principal">
-      <a href="/#top" aria-current="page">Home</a>
-      <a href="/#services">Solutions</a>
-      <a href="/#pillars" data-pillar-link="data">Data Science</a>
-      <a href="/#pillars" data-pillar-link="automation">Automations</a>
-      <a href="/#vision">About</a>
+      <a href={`${baseUrl}#top`} aria-current="page">Home</a>
+      <a href={`${baseUrl}#services`}>Solutions</a>
+      <a href={`${baseUrl}#pillars`} data-pillar-link="data">Data Science</a>
+      <a href={`${baseUrl}#pillars`} data-pillar-link="automation">Automations</a>
+      <a href={`${baseUrl}#vision`}>About</a>
     </nav>
     <div class="actions">
       <button type="button" data-theme-toggle aria-pressed="false" aria-label="Cambiar tema">
         <span aria-hidden="true">◐</span>
         <span data-theme-label>Oscuro</span>
       </button>
-      <a class="cta-small" href="/#contact">Get in touch <span aria-hidden="true">→</span></a>
+      <a class="cta-small" href={`${baseUrl}#contact`}>Get in touch <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </header>

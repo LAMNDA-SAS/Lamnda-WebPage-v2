@@ -1,5 +1,6 @@
 ---
 /* Site footer: tagline + contact entry points. */
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <footer class="site-footer">
@@ -7,7 +8,7 @@
     <p class="brand-row">
       <img
         class="footer-shield"
-        src="/logos/lamnda-mark.png"
+        src={`${baseUrl}logos/lamnda-mark.png`}
         alt="Lamnda"
         width="24"
         height="24"
@@ -17,9 +18,9 @@
       <span class="tag" aria-label="Lamnda tagline">SCIENCE x TECHNOLOGY x IMPACT</span>
     </p>
     <div class="links">
-      <a href="/#services">Solutions</a>
-      <a href="/#vision">About</a>
-      <a href="/#contact">Get in touch</a>
+      <a href={`${baseUrl}#services`}>Solutions</a>
+      <a href={`${baseUrl}#vision`}>About</a>
+      <a href={`${baseUrl}#contact`}>Get in touch</a>
       <a href="mailto:hola@lamnda.example.com">hola@lamnda.example.com</a>
     </div>
     <p class="copy">© 2026 Lamnda SAS. Todos los derechos reservados.</p>

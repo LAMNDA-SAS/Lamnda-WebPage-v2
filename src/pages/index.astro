@@ -5,6 +5,8 @@ import Footer from "../components/Footer.astro";
 import HopfHero from "../components/HopfHero.astro";
 import { getCollection } from "astro:content";
 
+const baseUrl = import.meta.env.BASE_URL;
+
 /* EN exception: do not translate */
 const HERO_HEADLINE = "Complex problems. Elegant solutions.";
 const heroSplit = HERO_HEADLINE.indexOf("Elegant");
@@ -152,7 +154,7 @@ const description =
                 </ul>
                 {/* Qualitative outcome line: rendered only when frontmatter sets outcome. */}
                 {s.data.outcome && <p class="card-outcome">{s.data.outcome}</p>}
-                <a class="example-hint" href={`/servicios/${s.slug}`}>Ver ejemplo en vivo <span class="arrow-chip" aria-hidden="true">→</span></a>
+                <a class="example-hint" href={`${baseUrl}servicios/${s.slug}`}>Ver ejemplo en vivo <span class="arrow-chip" aria-hidden="true">→</span></a>
               </article>
             ))
           }

@@ -49,4 +49,9 @@ PUBLIC_HOPF_ENABLED=false npm run build
 
 ## Deploy
 
-Any static host (Cloudflare Pages / Vercel / Netlify) serving `dist/`.
+Pushes to `main` deploy to GitHub Pages via `.github/workflows/deploy.yml`:
+https://lamnda-sas.github.io/Lamnda-WebPage-v2/
+
+The CI build uses `BASE_PATH=/Lamnda-WebPage-v2` so assets resolve under the
+project subpath. Any other static host can serve `dist/` from a plain
+`npm run build`.

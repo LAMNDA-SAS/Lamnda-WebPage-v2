@@ -13,10 +13,11 @@ export interface Props {
 }
 
 const hopfEnabled = import.meta.env.PUBLIC_HOPF_ENABLED !== "false";
+const baseUrl = import.meta.env.BASE_URL;
 
 const {
-  posterSrc = "/hero-poster-dark.webp",
-  posterLightSrc = "/hero-poster-light.webp",
+  posterSrc = `${baseUrl}hero-poster-dark.webp`,
+  posterLightSrc = `${baseUrl}hero-poster-light.webp`,
   fiberCount,
   autoRotate,
 } = Astro.props;

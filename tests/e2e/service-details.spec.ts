@@ -106,7 +106,11 @@ test.describe("service detail routes", () => {
       const canonical = await page
         .locator('link[rel="canonical"]')
         .getAttribute("href");
-      expect(canonical).toBe(`https://lamnda.example.com/servicios/${slug}`);
+      expect(canonical).toMatch(
+        new RegExp(
+          `^https://lamnda-sas\\.github\\.io(?:/Lamnda-WebPage-v2)?/servicios/${slug}/?$`,
+        ),
+      );
       // Page copy carries zero numeric KPI patterns.
       // Demo islands are sample data and are excluded from the scan;
       // the agendamiento mock keeps the raw whole-main scan.
