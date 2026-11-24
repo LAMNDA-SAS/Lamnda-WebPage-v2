@@ -1,0 +1,410 @@
+---
+/**
+ * Port of the old site's `service-lead-scoring.html` `#ejemplo` live demo.
+ * Verbatim markup and class names; used-selector CSS remapped to v2 tokens
+ * under the `[data-demo="lead-scoring"]` root (design D3). One guarded
+ * inline IIFE (D1/D4). RM policy: CSS-only — the sort script is purely
+ * event-driven and adds no motion of its own.
+ * Directed adaptations: old CTAs dropped, vendor-free, signal spans carry
+ * a scoped `.example-signal` rule instead of inline `color:#64748b`.
+ */
+---
+<div class="example-inner" data-demo="lead-scoring">
+    <span class="example-badge">Ejemplo en vivo</span>
+    <h3 class="example-outcome">Tu equipo llama primero a quien sí va a comprar</h3>
+    <p class="example-sub">Scoring por comportamiento web y email: los SQL suben solos y disparan la alerta a ventas.</p>
+    <ul class="example-kpis">
+        <li>+31% cierres</li>
+        <li>-50% leads fríos</li>
+        <li class="example-kpi-accent">Alerta instantánea</li>
+    </ul>
+    <p class="example-sample-note">Datos de muestra con fines ilustrativos.</p>
+    <div class="example-frame">
+        <div class="example-frame-bar"><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-title">Lead scoring</span></div>
+        <div class="example-frame-body">
+            <div class="example-sort-row">
+                <span class="example-sort-label">Ordenar por:</span>
+                <button type="button" class="example-sort-btn example-sort-active" data-sort="score">Puntaje</button>
+                <button type="button" class="example-sort-btn" data-sort="nombre">Nombre</button>
+                <button type="button" class="example-sort-btn" data-sort="empresa">Empresa</button>
+                <button type="button" class="example-sort-btn" data-sort="estado">Estado</button>
+                <button type="button" class="example-sort-btn" data-sort="fecha">Fecha</button>
+                <button type="button" class="example-sort-btn example-sort-dir" id="sortDir" aria-pressed="false">↓ Desc</button>
+            </div>
+            <div class="example-table-wrap">
+                <table class="example-table" id="scoreTable">
+                    <thead><tr><th>Lead</th><th>Empresa</th><th>Puntaje</th><th>Estado</th><th>Señal · Fecha</th></tr></thead>
+                    <tbody>
+                        <tr data-score="92" data-nombre="Carolina M." data-empresa="Andina" data-estado="SQL" data-fecha="2026-08-28"><td><strong>Carolina M.</strong><br><span class="example-signal">Visitó precios 4x</span></td><td>Andina</td><td><div class="example-score-bar"><div class="example-score-fill" style="width:92%"></div></div><small>92</small></td><td><span class="example-pill example-pill-sql">SQL</span></td><td>Pidió demo · 28 ago</td></tr>
+                        <tr data-score="78" data-nombre="Andrés P." data-empresa="Moto Sur" data-estado="SQL" data-fecha="2026-08-25"><td><strong>Andrés P.</strong><br><span class="example-signal">Abrió 6 emails</span></td><td>Moto Sur</td><td><div class="example-score-bar"><div class="example-score-fill" style="width:78%"></div></div><small>78</small></td><td><span class="example-pill example-pill-sql">SQL</span></td><td>Descargó caso · 25 ago</td></tr>
+                        <tr data-score="64" data-nombre="Lucía F." data-empresa="Vidal" data-estado="MQL" data-fecha="2026-08-20"><td><strong>Lucía F.</strong><br><span class="example-signal">2 visitas blog</span></td><td>Vidal</td><td><div class="example-score-bar"><div class="example-score-fill" style="width:64%"></div></div><small>64</small></td><td><span class="example-pill example-pill-mql">MQL</span></td><td>En nutrición · 20 ago</td></tr>
+                        <tr data-score="41" data-nombre="Jorge R." data-empresa="Paraíso" data-estado="MQL" data-fecha="2026-08-15"><td><strong>Jorge R.</strong><br><span class="example-signal">1 visita home</span></td><td>Paraíso</td><td><div class="example-score-bar"><div class="example-score-fill" style="width:41%"></div></div><small>41</small></td><td><span class="example-pill example-pill-mql">MQL</span></td><td>Nuevo · 15 ago</td></tr>
+                        <tr data-score="18" data-nombre="Paula D." data-empresa="Roma" data-estado="Frío" data-fecha="2026-08-02"><td><strong>Paula D.</strong><br><span class="example-signal">Rebotó en 10 s</span></td><td>Roma</td><td><div class="example-score-bar"><div class="example-score-fill" style="width:18%"></div></div><small>18</small></td><td><span class="example-pill example-pill-cold">Frío</span></td><td>Descartar · 2 ago</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4 class="example-sub-block-title">Rendimiento de asesores comerciales</h4>
+            <p class="example-sub-block-sub">Comparativa del mes · Datos de muestra con fines ilustrativos.</p>
+            <div class="example-sellers">
+                <div class="example-seller"><strong>Ana Torres</strong><span class="example-top-badge">Top performer</span><p class="example-seller-meta">48 leads atendidos · 38% conversión · Ticket $6.4M</p><div class="example-score-bar"><div class="example-score-fill" style="width:95%"></div></div><small>Score 95</small><div class="example-compare"><div class="example-compare-fill" style="width:95%"></div></div></div>
+                <div class="example-seller"><strong>Luis Peña</strong><p class="example-seller-meta">52 leads atendidos · 27% conversión · Ticket $5.1M</p><div class="example-score-bar"><div class="example-score-fill" style="width:74%"></div></div><small>Score 74</small><div class="example-compare"><div class="example-compare-fill" style="width:74%"></div></div></div>
+                <div class="example-seller"><strong>Marta Ríos</strong><p class="example-seller-meta">39 leads atendidos · 22% conversión · Ticket $4.6M</p><div class="example-score-bar"><div class="example-score-fill" style="width:61%"></div></div><small>Score 61</small><div class="example-compare"><div class="example-compare-fill" style="width:61%"></div></div></div>
+                <div class="example-seller"><strong>Diego Sanz</strong><p class="example-seller-meta">31 leads atendidos · 16% conversión · Ticket $3.9M</p><div class="example-score-bar"><div class="example-score-fill" style="width:45%"></div></div><small>Score 45</small><div class="example-compare"><div class="example-compare-fill" style="width:45%"></div></div></div>
+                <div class="example-seller"><strong>Vale Cruz</strong><p class="example-seller-meta">27 leads atendidos · 12% conversión · Ticket $3.2M</p><div class="example-score-bar"><div class="example-score-fill" style="width:33%"></div></div><small>Score 33</small><div class="example-compare"><div class="example-compare-fill" style="width:33%"></div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+/* Lead scoring demo — old demos.css used-selectors rebased from .live-example
+   to [data-demo="lead-scoring"], colors remapped to v2 tokens (design D3/D7). */
+
+[data-demo="lead-scoring"] {
+    --demo-ok: #4ade80;   /* indicator ≥3:1 vs dark card; dark text use */
+    --demo-warn: #fbbf24;
+    --demo-danger: #f87171;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+html[data-theme="light"] [data-demo="lead-scoring"] {
+    --demo-ok: #15803d;
+    --demo-warn: #b45309;
+    --demo-danger: #b91c1c;
+}
+
+[data-demo="lead-scoring"] .example-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+
+[data-demo="lead-scoring"] h3.example-outcome {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+[data-demo="lead-scoring"] .example-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0 0 20px;
+    max-width: 700px;
+}
+
+[data-demo="lead-scoring"] .example-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+[data-demo="lead-scoring"] .example-kpis li {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    white-space: nowrap;
+}
+
+[data-demo="lead-scoring"] .example-kpis li.example-kpi-accent {
+    background: var(--primary-text);
+    color: var(--bg);
+    border-color: var(--primary-text);
+}
+
+[data-demo="lead-scoring"] .example-sample-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+[data-demo="lead-scoring"] .example-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+[data-demo="lead-scoring"] .example-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+}
+
+[data-demo="lead-scoring"] .example-frame-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+/* Window dots are pure decoration; v2 is monochrome brand blue. */
+[data-demo="lead-scoring"] .example-frame-dot:first-child { background: var(--primary); }
+[data-demo="lead-scoring"] .example-frame-dot:nth-child(2) { background: var(--primary); }
+[data-demo="lead-scoring"] .example-frame-dot:nth-child(3) { background: var(--primary); }
+
+[data-demo="lead-scoring"] .example-frame-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="lead-scoring"] .example-frame-body {
+    padding: 20px;
+}
+
+[data-demo="lead-scoring"] .example-sort-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+[data-demo="lead-scoring"] .example-sort-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text);
+}
+
+[data-demo="lead-scoring"] .example-sort-btn {
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 7px 14px;
+    cursor: pointer;
+}
+
+[data-demo="lead-scoring"] .example-sort-btn.example-sort-active {
+    background: var(--primary-text);
+    color: var(--bg);
+    border-color: var(--primary-text);
+}
+
+[data-demo="lead-scoring"] .example-sort-dir {
+    font-weight: 800;
+    min-width: 90px;
+}
+
+[data-demo="lead-scoring"] .example-table-wrap {
+    overflow-x: auto;
+}
+
+[data-demo="lead-scoring"] table.example-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+[data-demo="lead-scoring"] table.example-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+[data-demo="lead-scoring"] table.example-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+/* Row signal text: replaces the old inline style="color:#64748b;font-size:.75rem". */
+[data-demo="lead-scoring"] .example-signal {
+    display: inline;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+[data-demo="lead-scoring"] .example-score-bar {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 50px;
+    overflow: hidden;
+    min-width: 90px;
+}
+
+[data-demo="lead-scoring"] .example-score-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: var(--primary-text);
+}
+
+[data-demo="lead-scoring"] .example-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border-radius: 50px;
+    padding: 4px 10px;
+}
+
+[data-demo="lead-scoring"] .example-pill-mql {
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+    color: var(--primary-text);
+}
+
+[data-demo="lead-scoring"] .example-pill-sql {
+    background: color-mix(in srgb, var(--demo-ok) 12%, var(--card));
+    color: var(--demo-ok);
+}
+
+[data-demo="lead-scoring"] .example-pill-cold {
+    background: var(--surface);
+    color: var(--muted);
+}
+
+[data-demo="lead-scoring"] .example-sub-block-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 26px 0 4px;
+}
+
+[data-demo="lead-scoring"] .example-sub-block-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+}
+
+[data-demo="lead-scoring"] .example-sellers {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+[data-demo="lead-scoring"] .example-seller {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 0.78rem;
+    color: var(--text);
+    position: relative;
+}
+
+[data-demo="lead-scoring"] .example-seller strong {
+    font-size: 0.86rem;
+    color: var(--text);
+}
+
+[data-demo="lead-scoring"] .example-seller-meta {
+    color: var(--muted);
+    font-size: 0.74rem;
+    margin: 4px 0 8px;
+}
+
+/* Old #fef3c7/#92400e warn badge → scoped warn pair (D7). */
+[data-demo="lead-scoring"] .example-top-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--demo-warn) 12%, var(--card));
+    color: var(--demo-warn);
+    border: 1px solid color-mix(in srgb, var(--demo-warn) 35%, transparent);
+    border-radius: 50px;
+    padding: 3px 10px;
+    margin-left: 6px;
+}
+
+[data-demo="lead-scoring"] .example-compare {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+[data-demo="lead-scoring"] .example-compare-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: var(--primary-text);
+}
+
+@media (max-width: 768px) {
+    [data-demo="lead-scoring"] h3.example-outcome { font-size: 1.5rem; }
+    [data-demo="lead-scoring"] .example-frame-body { padding: 14px; }
+    [data-demo="lead-scoring"] .example-sort-row { flex-direction: column; align-items: stretch; }
+    [data-demo="lead-scoring"] .example-sellers { grid-template-columns: 1fr; }
+}
+</style>
+
+<script is:inline>
+/* Port of the old lead-scoring sort IIFE, 1:1 control flow, scoped to the
+   demo root (D1/D4). RM note: filter/sort clicks are user-driven events with
+   no autonomous motion, so REDUCED has nothing to gate here (policy: CSS-only). */
+(function () {
+    try {
+        var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var root = document.querySelector('[data-demo="lead-scoring"]');
+        if (!root) return;
+        var t = root.querySelector('#scoreTable');
+        var btns = Array.prototype.slice.call(root.querySelectorAll('.example-sort-btn[data-sort]'));
+        var dir = root.querySelector('#sortDir');
+        var key = 'score', asc = false;
+        function sort() {
+            if (!t) return;
+            var r = Array.from(t.querySelectorAll('tbody tr'));
+            r.sort(function (a, b) {
+                var va = a.dataset[key] || '', vb = b.dataset[key] || '';
+                var c = (key === 'score') ? (parseFloat(va) - parseFloat(vb)) : (va < vb ? -1 : va > vb ? 1 : 0);
+                return asc ? c : -c;
+            });
+            r.forEach(function (x) { t.querySelector('tbody').appendChild(x); });
+        }
+        btns.forEach(function (b) {
+            b.addEventListener('click', function () {
+                btns.forEach(function (x) { x.classList.remove('example-sort-active'); });
+                b.classList.add('example-sort-active');
+                key = b.dataset.sort;
+                sort();
+            });
+        });
+        if (dir) dir.addEventListener('click', function () {
+            asc = !asc;
+            dir.textContent = asc ? '↑ Asc' : '↓ Desc';
+            dir.setAttribute('aria-pressed', asc ? 'true' : 'false');
+            sort();
+        });
+        sort();
+    } catch (e) { if (window.console) console.warn('lamnda-demo', e); }
+})();
+</script>

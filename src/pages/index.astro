@@ -18,17 +18,13 @@ const pillars = await getCollection("pillars");
 const vision = (await getCollection("vision"))[0];
 const mission = (await getCollection("mission"))[0];
 
-const fullCards = services.filter((s) => s.data.card === "full");
-const summaryCards = services.filter((s) => s.data.card === "summary");
-
-const pillarOrder = ["data", "security", "automation"] as const;
+const pillarOrder = ["data", "automation"] as const;
 const orderedPillars = [...pillars].sort(
   (a, b) => pillarOrder.indexOf(a.data.key as (typeof pillarOrder)[number]) - pillarOrder.indexOf(b.data.key as (typeof pillarOrder)[number]),
 );
 
 const pillarLabel: Record<string, string> = {
   data: "Data Science",
-  security: "Cybersecurity",
   automation: "Automations",
 };
 
@@ -40,6 +36,9 @@ const description =
 <Base title={title} description={description}>
   <Header />
   <main id="main">
+    {/* Scroll-stage: the hero pins while the sheet below slides up over the
+        Hopf ring, so the services read as a sheet rising onto the visual. */}
+    <div class="hero-stage">
     <!-- HERO / LOBBY: full-bleed WebGL canvas, copy overlaid left -->
     <section id="top" class="hero hero-overlay" aria-labelledby="hero-heading">
       <div class="hero-bg" aria-hidden="false">
@@ -54,7 +53,7 @@ const description =
       </aside>
       <div class="wrap hero-copy-layer">
         <div class="hero-copy" data-hero-copy>
-          <p class="hero-eyebrow">DATA / SECURITY / AUTOMATION</p>
+          <p class="hero-eyebrow">DATA / AUTOMATION</p>
           {/* EN exception: do not translate */}
           <h1 id="hero-heading"><span class="h1-line1">{HERO_LINE1}</span>{" "}<span class="h1-line2">{HERO_LINE2}</span></h1>
           <p class="lede">
@@ -67,15 +66,6 @@ const description =
             </a>
             <a class="cta-ghost" href="#contact" data-magnetic>Get in touch</a>
           </div>
-          <p class="hero-note">
-            Campo de fibras de Hopf — cada hilo es un flujo de tu operación,
-            entrelazado sin enredarse.
-          </p>
-          {/* Qualitative proof line: no numeric claims. */}
-          <p class="hero-proof">
-            Equipos que responden en minutos, documentos listos el mismo día,
-            agendas que se llenan solas.
-          </p>
         </div>
         <div class="hero-pillars" aria-label="Pilares destacados">
           {
@@ -83,9 +73,6 @@ const description =
               <div class="hero-pillar" data-hero-pillar={p.data.key}>
                 {p.data.key === "data" && (
                   <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 13V7M6 13V3M10 13v-6M14 13V5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                )}
-                {p.data.key === "security" && (
-                  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1.5 13 3.5v4c0 3.2-2.1 5.4-5 7-2.9-1.6-5-3.8-5-7v-4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                 )}
                 {p.data.key === "automation" && (
                   <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8a5 5 0 0 1 8.7-3.4M13 8a5 5 0 0 1-8.7 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11.5 1.8v2.6h-2.6M4.5 14.2v-2.6h2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -102,6 +89,9 @@ const description =
       <p class="hero-tag" aria-hidden="true">HOPF FIELD · 36 FIBERS · LIVE</p>
     </section>
 
+    {/* Sheet: opaque panel with a rounded top edge that rises over the
+        pinned hero as the user scrolls. */}
+    <div class="sheet" data-sheet>
     <!-- PILLARS -->
     <section id="pillars" class="section" aria-labelledby="pillars-heading" data-reveal>
       <div class="wrap">
@@ -112,7 +102,7 @@ const description =
               <article class="pillar-card" data-pillar={p.data.key}>
                 <h3>{p.data.title}</h3>
                 <p>{p.data.tagline}</p>
-                {/* Qualitative practice line per pillar; security stays a practice, not a product claim. */}
+                {/* Qualitative practice line per pillar: a practice, not a product claim. */}
                 {p.data.key === "data" && (
                   <p class="pillar-proof">
                     Del historial disperso a la lista priorizada: cada lead llega con contexto.
@@ -121,11 +111,6 @@ const description =
                 {p.data.key === "automation" && (
                   <p class="pillar-proof">
                     Lo repetitivo se hace solo; tu equipo solo decide lo importante.
-                  </p>
-                )}
-                {p.data.key === "security" && (
-                  <p class="pillar-proof">
-                    Trazabilidad y revisión humana en cada flujo automatizado.
                   </p>
                 )}
               </article>
@@ -140,20 +125,17 @@ const description =
       <div class="wrap">
         <h2 id="services-heading" tabindex="-1">Soluciones</h2>
         <p class="section-lede">
-          Cinco soluciones prioritarias a fondo, tres capacidades resumidas.
+          Ocho soluciones, el mismo estándar de calidad.
           Elige por dónde empezar.
         </p>
         <div class="card-grid">
           {
-            fullCards.map((s) => (
+            services.map((s) => (
               <article class="card card-full" data-card={s.slug}>
                 <p class="pillar-tag">{pillarLabel[s.data.pillar]}</p>
                 <span class="icon-box" aria-hidden="true">
                   {s.data.pillar === "data" && (
                     <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M2 13V7M6 13V3M10 13v-6M14 13V5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                  )}
-                  {s.data.pillar === "security" && (
-                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M8 1.5 13 3.5v4c0 3.2-2.1 5.4-5 7-2.9-1.6-5-3.8-5-7v-4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                   )}
                   {s.data.pillar === "automation" && (
                     <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M3 8a5 5 0 0 1 8.7-3.4M13 8a5 5 0 0 1-8.7 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11.5 1.8v2.6h-2.6M4.5 14.2v-2.6h2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -171,125 +153,9 @@ const description =
                 {/* Qualitative outcome line: rendered only when frontmatter sets outcome. */}
                 {s.data.outcome && <p class="card-outcome">{s.data.outcome}</p>}
                 <a class="example-hint" href={`/servicios/${s.slug}`}>Ver ejemplo en vivo <span class="arrow-chip" aria-hidden="true">→</span></a>
-                {s.slug === "dashboards-dinamicos" && (
-                  <div
-                    class="dashboard-mock"
-                    role="img"
-                    aria-label="Mock ilustrativo de dashboard (sin datos reales)"
-                  >
-                    <svg viewBox="0 0 320 180" width="100%" height="auto" aria-hidden="true">
-                      <rect x="0" y="0" width="320" height="180" rx="12" fill="var(--surface)" />
-                      <rect x="16" y="16" width="120" height="14" rx="7" fill="var(--primary)" opacity="0.8" />
-                      <rect x="16" y="40" width="88" height="10" rx="5" fill="var(--muted)" opacity="0.6" />
-                      <rect x="16" y="60" width="86" height="96" rx="8" fill="none" stroke="var(--primary)" stroke-width="2" />
-                      <polyline
-                        points="20,140 50,120 80,128 110,96 140,104 170,80 200,88"
-                        fill="none"
-                        stroke="var(--primary)"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                      />
-                      {[0, 1, 2].map((i) => (
-                        <rect x={120 + i * 62} y={60 + i * 12} width="52" height="34" rx="6" fill="var(--surface)" stroke="var(--border)" />
-                      ))}
-                      <circle cx="260" cy="130" r="22" fill="none" stroke="var(--primary)" stroke-width="6" stroke-dasharray="90 60" />
-                    </svg>
-                    <p class="mock-caption">Mock ilustrativo — sin datos reales</p>
-                  </div>
-                )}
               </article>
             ))
           }
-        </div>
-        <div class="card-grid summary">
-          {
-            summaryCards.map((s) => (
-              <article class="card card-summary" data-card={s.slug}>
-                <p class="pillar-tag">{pillarLabel[s.data.pillar]}</p>
-                <span class="icon-box" aria-hidden="true">
-                  {s.data.pillar === "data" && (
-                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M2 13V7M6 13V3M10 13v-6M14 13V5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                  )}
-                  {s.data.pillar === "security" && (
-                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M8 1.5 13 3.5v4c0 3.2-2.1 5.4-5 7-2.9-1.6-5-3.8-5-7v-4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-                  )}
-                  {s.data.pillar === "automation" && (
-                    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path d="M3 8a5 5 0 0 1 8.7-3.4M13 8a5 5 0 0 1-8.7 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11.5 1.8v2.6h-2.6M4.5 14.2v-2.6h2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  )}
-                </span>
-                <h3>{s.data.title}</h3>
-                <p class="card-summary-text">{s.data.summary}</p>
-                <a class="example-hint" href={`/servicios/${s.slug}`}>Ver ejemplo en vivo <span class="arrow-chip" aria-hidden="true">→</span></a>
-              </article>
-            ))
-          }
-        </div>
-        {/* Static showcase strip: CSS-only mocks + integration chips, no JS or external assets. */}
-        <div id="showcase" aria-label="Cómo se ve">
-          <h3 class="showcase-title">Cómo se ve</h3>
-          <div class="showcase-grid">
-            <figure
-              class="showcase-mock"
-              role="img"
-              aria-label="Mock ilustrativo de fila de notificación priorizada"
-            >
-              <div class="mock-row" aria-hidden="true">
-                <span class="mock-dot"></span>
-                <span class="mock-lines"><i></i><i></i></span>
-                <span class="mock-tag">WhatsApp</span>
-              </div>
-              <figcaption>Mock ilustrativo</figcaption>
-            </figure>
-            <figure
-              class="showcase-mock"
-              role="img"
-              aria-label="Mock ilustrativo de barras de prioridad de prospectos"
-            >
-              <div class="mock-bars" aria-hidden="true">
-                <div class="mock-bar"><span>Alta</span><i style="width: 82%"></i></div>
-                <div class="mock-bar"><span>Media</span><i style="width: 55%"></i></div>
-                <div class="mock-bar"><span>Baja</span><i style="width: 28%"></i></div>
-              </div>
-              <figcaption>Mock ilustrativo</figcaption>
-            </figure>
-            <figure
-              class="showcase-mock"
-              role="img"
-              aria-label="Mock ilustrativo de tarjeta de agenda automática"
-            >
-              <div class="mock-schedule" aria-hidden="true">
-                <strong>Agenda de mañana</strong>
-                <div class="mock-chips">
-                  <span>09:00</span><span>11:30</span><span>16:00</span>
-                </div>
-              </div>
-              <figcaption>Mock ilustrativo</figcaption>
-            </figure>
-          </div>
-          <p class="showcase-note">Mock ilustrativo — sin datos reales</p>
-          <p class="showcase-connect">Se conecta con</p>
-          <ul class="showcase-chips" aria-label="Integraciones">
-            <li>
-              {/* Original abstract mark: speech bubble, not the vendor logo. */}
-              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 3.5h12v7H8l-3.5 3v-3H2Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-              <span>WhatsApp</span>
-            </li>
-            <li>
-              {/* Original abstract mark: envelope motif, not the vendor logo. */}
-              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="2" y="3.5" width="12" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m3 5 5 4 5-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <span>Gmail</span>
-            </li>
-            <li>
-              {/* Original abstract mark: channel bars, not the vendor logo. */}
-              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2.5 6.5h11M2.5 10h11M5 3v10M11 3v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <span>Slack</span>
-            </li>
-            <li>
-              {/* Original abstract mark: hub nodes, not the vendor logo. */}
-              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="3" cy="3.5" r="1.4" fill="currentColor"/><circle cx="13" cy="3.5" r="1.4" fill="currentColor"/><circle cx="3" cy="12.5" r="1.4" fill="currentColor"/><circle cx="13" cy="12.5" r="1.4" fill="currentColor"/><path d="M4 4.5 6.5 6.5M12 4.5 9.5 6.5M4 11.5l2.5-2M12 11.5 9.5 9.5" stroke="currentColor" stroke-width="1.2"/></svg>
-              <span>HubSpot</span>
-            </li>
-          </ul>
         </div>
         <div class="ally-block">
           <h3>Tu aliado en la transformación digital</h3>
@@ -299,11 +165,12 @@ const description =
           </p>
           <div class="ally-actions">
             <a class="cta-primary" href="#contact" data-magnetic>Solicita una demo</a>
-            <a class="cta-ghost" href="#services">Ver cómo se ve</a>
           </div>
         </div>
       </div>
     </section>
+    </div>
+    </div>
 
     <!-- VISION / MISSION -->
     <section id="vision" class="section" aria-labelledby="vision-heading" data-reveal>
@@ -358,13 +225,31 @@ const description =
     padding: 3.5rem 0 2.5rem;
   }
   .hero-overlay {
-    position: relative;
+    /* Pinned inside .hero-stage so the sheet below can slide up over the
+       Hopf ring: the visual stays, the services rise onto it. */
+    position: sticky;
+    top: 0;
+    z-index: 0;
     min-height: 100svh;
     display: flex;
     align-items: center;
     padding: 5rem 0 4rem;
     overflow: clip;
     background: var(--bg);
+  }
+  .hero-stage {
+    position: relative;
+  }
+  .sheet {
+    position: relative;
+    z-index: 2;
+    background: var(--bg);
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -30px 70px rgb(0 0 0 / 0.45);
+    padding-top: 0.8rem;
+  }
+  html[data-theme="light"] .sheet {
+    box-shadow: 0 -30px 70px rgb(16 26 43 / 0.14);
   }
   .hero-bg {
     position: absolute;
@@ -430,11 +315,6 @@ const description =
     padding: 0.75rem 1.4rem;
     border-radius: 999px;
   }
-  .hero-note {
-    color: var(--muted);
-    font-size: 0.9rem;
-    max-width: 30rem;
-  }
   .section {
     padding: 3rem 0 1rem;
   }
@@ -449,7 +329,7 @@ const description =
   }
   .pillar-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1rem;
   }
   .pillar-card {
@@ -470,9 +350,6 @@ const description =
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-top: 1.4rem;
-  }
-  .card-grid.summary {
-    grid-template-columns: repeat(3, 1fr);
   }
   #services .card {
     background: var(--card);
@@ -529,17 +406,6 @@ const description =
     color: var(--muted);
     display: grid;
     gap: 0.4rem;
-  }
-  .dashboard-mock {
-    margin-top: 1rem;
-    border: 1px dashed var(--border);
-    border-radius: 10px;
-    padding: 0.7rem;
-  }
-  .mock-caption {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin: 0.4rem 0 0;
   }
   /* New v7 rows: DRAFT badge shares the TBD visual language. */
   .draft-badge {
@@ -621,139 +487,6 @@ const description =
     gap: 0.8rem;
     flex-wrap: wrap;
     align-items: center;
-  }
-  /* Static showcase strip between the summary grid and the ally block. */
-  #showcase {
-    margin-top: 1.6rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.4rem;
-  }
-  .showcase-title {
-    margin: 0 0 1rem;
-    font-size: 1.1rem;
-  }
-  .showcase-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-  .showcase-mock {
-    margin: 0;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.9rem;
-  }
-  .showcase-mock figcaption {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 0.5rem;
-  }
-  .mock-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .mock-dot {
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: var(--primary-text);
-    flex: none;
-  }
-  .mock-lines {
-    display: grid;
-    gap: 0.3rem;
-    flex: 1;
-  }
-  .mock-lines i {
-    display: block;
-    height: 0.55rem;
-    border-radius: 999px;
-    background: var(--muted);
-    opacity: 0.55;
-  }
-  .mock-lines i:last-child {
-    width: 65%;
-  }
-  .mock-tag {
-    font-size: 0.72rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.1rem 0.6rem;
-    color: var(--primary-text);
-  }
-  .mock-bars {
-    display: grid;
-    gap: 0.5rem;
-  }
-  .mock-bar {
-    display: grid;
-    grid-template-columns: 3.2rem 1fr;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-  }
-  .mock-bar i {
-    display: block;
-    height: 0.6rem;
-    border-radius: 999px;
-    background: var(--primary-text);
-    opacity: 0.75;
-  }
-  .mock-schedule {
-    display: grid;
-    gap: 0.6rem;
-  }
-  .mock-schedule strong {
-    font-size: 0.88rem;
-  }
-  .mock-chips {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-  }
-  .mock-chips span {
-    font-size: 0.78rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.15rem 0.6rem;
-    color: var(--muted);
-  }
-  .showcase-note {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin: 0.8rem 0 0;
-  }
-  .showcase-connect {
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin: 1rem 0 0.5rem;
-  }
-  .showcase-chips {
-    list-style: none;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin: 0;
-    padding: 0;
-  }
-  .showcase-chips li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    background: var(--card);
-    border-radius: 999px;
-    padding: 0.3rem 0.8rem;
-  }
-  .showcase-chips svg {
-    color: var(--muted);
   }
   .ally-block {
     margin-top: 1.6rem;
@@ -839,8 +572,6 @@ const description =
     }
     .pillar-grid,
     .card-grid,
-    .card-grid.summary,
-    .showcase-grid,
     .vm-grid {
       grid-template-columns: 1fr;
     }
@@ -863,4 +594,37 @@ const description =
     target.focus({ preventScroll: true });
     history.replaceState(null, "", "#services");
   });
+</script>
+
+<script is:inline>
+  // Sheet-over-hero cover detection: once the sheet has risen over the Hopf
+  // ring, the canvas is hidden behind it, so the renderer pauses instead of
+  // burning CPU on an invisible animation. Flag lives on <html> so the hero
+  // island can read it without coupling to this page.
+  (function () {
+    var sheet = document.querySelector("[data-sheet]");
+    if (!sheet) return;
+    // Reduced motion keeps the hero static: there is no animation to pause,
+    // so this listener stays out of the way (and adds no rAF churn).
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var root = document.documentElement;
+    var queued = false;
+    function sync() {
+      queued = false;
+      var top = sheet.getBoundingClientRect().top;
+      var covered = top <= window.innerHeight * 0.45;
+      var next = covered ? "true" : "false";
+      if (root.getAttribute("data-hero-covered") !== next) {
+        root.setAttribute("data-hero-covered", next);
+      }
+    }
+    function request() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(sync);
+    }
+    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("resize", request, { passive: true });
+    sync();
+  })();
 </script>

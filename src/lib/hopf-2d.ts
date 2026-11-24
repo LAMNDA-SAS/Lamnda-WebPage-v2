@@ -17,6 +17,16 @@
  *   always-on additive idle drift via pure `driftBase(t)` (all pointers,
  *   non-RM frames), pointer offset added on top, coarse zeroed bit-identical;
  *   `ph` delta wrapped to `[-PI,PI]`; `HOPF_ENABLED` escape.
+ * - 2026-11 perf/zoom pass (visual output unchanged): device-pixel budget
+ *   (`STAGE_MAX_DEVICE_PX`, scale floor `STAGE_MIN_SCALE`) so browser zoom,
+ *   4K and retina cannot blow up the bitmap — the logical stage stays equal
+ *   to the CSS box, so the browser scales it poster-like and the ring holds
+ *   its relative size; allocation-free fused fiber renderer (hoisted
+ *   pitch/group/style constants; verbatim fiber() and stroke() kept as pure
+ *   references), cached per-theme fiber palette, adaptive frame skip (60fps
+ *   active / 30fps idle) and explicit `visibilitychange` pause on top of the
+ *   existing IntersectionObserver pause (`setPaused` stays the single
+ *   checkpoint).
  */
 
 export const FIBER_COUNT = 36;
@@ -49,10 +59,47 @@ export const DPR_DESKTOP_MAX = 2;
 export const DPR_FLOOR = 1;
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
+/**
+ * Device-pixel budget for the hero bitmap (~1920x1150 = 2.2 MPx). The
+ * logical stage stays equal to the CSS box, so the bitmap keeps the box
+ * aspect and the browser scales it poster-like: the ring holds its relative
+ * size at any zoom level, while browser zoom-out, 4K and retina can never
+ * grow the backing store past the budget.
+ */
+export const STAGE_MAX_DEVICE_PX = 2_200_000;
+
+/**
+ * Lower clamp for the render scale (device pixels per CSS pixel). Below 1
+ * the browser upscales the bitmap: that is the deliberate cheap mode for far
+ * zoom-out, and 0.75 keeps the fibers legible there.
+ */
+export const STAGE_MIN_SCALE = 0.75;
+
 export const FIBER_INNER = "#EAF1FB";
 export const FIBER_OUTER = "#2E8CFF";
 export const FIBER_HI_DARK = "#7AB3FF";
 export const FIBER_HI_LIGHT = "#0A54C2";
+
+/** Verbatim style for every equal fiber: [lineWidth, globalAlpha] = (1.6, 0.7). */
+export const FIBER_STYLE = [1.6, 0.7] as const;
+
+/**
+ * Adaptive frame skip: ~60fps while the pointer is active, ~30fps after
+ * IDLE_AFTER_MS without interaction (idle/coarse/touched-out browsers).
+ */
+export const FRAME_MIN_INTERVAL_MS = 16;
+export const FRAME_IDLE_INTERVAL_MS = 33;
+export const IDLE_AFTER_MS = 3000;
+
+/** Cached per-theme color strings (fiberColor is pure; computed once). */
+function buildPalette(theme: Theme): string[] {
+  const out = new Array<string>(FIBER_COUNT);
+  for (let k = 0; k < FIBER_COUNT; k++)
+    out[k] = fiberColor((k / FIBER_COUNT) * Math.PI * 2, theme);
+  return out;
+}
+const PALETTE_DARK = buildPalette("dark");
+const PALETTE_LIGHT = buildPalette("light");
 
 export type Theme = "light" | "dark";
 
@@ -316,6 +363,11 @@ export function createHopf2D(
   let W = 0;
   let H = 0;
   let theme: Theme = readTheme();
+  /** Parent box cached by the last fit; skips backing reallocs on pure-DPR resizes. */
+  let fitW = -1;
+  let fitH = -1;
+  /** Device pixel ratio of the last fit; a monitor switch re-resolves once. */
+  let fitDpr = -1;
 
   const spinState = createSpinState();
   let tg = { th: Math.PI / 2, ph: 0 };
@@ -325,11 +377,18 @@ export function createHopf2D(
   let driftT = 0;
   // Additive pointer offset: aim(nx,ny) - aim(0.5,0.5); coarse stays zeroed.
   let pointerOffset = { th: 0, ph: 0, tp: 0 };
-  let last = typeof performance !== "undefined" ? performance.now() : 0;
 
   let raf = 0;
   let paused = false;
   let disposed = false;
+  /** Tab-hidden pause: visibilitychange gating on top of the IO pause. */
+  let hiddenPaused = typeof document !== "undefined" && document.hidden;
+  /** Sheet-covered pause: the hero is hidden behind the rising sheet. */
+  let covered = false;
+  /** ms timestamp of the last rendered frame (frame-skip baseline). */
+  let lastRender = 0;
+  /** ms timestamp of the last pointer activity (idle interval trigger). */
+  let lastInput = -IDLE_AFTER_MS;
 
   function fit(): void {
     if (disposed) return;
@@ -337,9 +396,21 @@ export function createHopf2D(
     const cw = parent ? parent.clientWidth : canvas.clientWidth || window.innerWidth || 640;
     const ch = parent ? parent.clientHeight : canvas.clientHeight || window.innerHeight || 480;
     const mobile = isMobileViewport();
-    const D = clampDpr(window.devicePixelRatio || 1, mobile);
-    W = cw;
-    H = ch;
+    const dpr = clampDpr(window.devicePixelRatio || 1, mobile);
+    // Same parent box AND same DPR (pure-DPR resize wobble): keep the current
+    // backing store instead of reallocating per zoom step.
+    if (cw === fitW && ch === fitH && dpr === fitDpr) return;
+    fitW = cw;
+    fitH = ch;
+    fitDpr = dpr;
+    // Logical stage == CSS box: identical aspect, so the browser scales the
+    // bitmap poster-like and the ring keeps its relative size at any zoom.
+    W = Math.max(1, Math.round(cw));
+    H = Math.max(1, Math.round(ch));
+    // Bound the DEVICE pixel count: browser zoom-out, 4K and retina cannot
+    // grow the bitmap past the budget. The scale floor keeps fibers legible.
+    const budgetScale = Math.sqrt(STAGE_MAX_DEVICE_PX / (W * H));
+    const D = Math.max(STAGE_MIN_SCALE, Math.min(dpr, budgetScale));
     canvas.width = Math.max(1, Math.round(W * D));
     canvas.height = Math.max(1, Math.round(H * D));
     ctx.setTransform(D, 0, 0, D, 0, 0);
@@ -349,11 +420,63 @@ export function createHopf2D(
     if (disposed) return;
     spin(spinState);
     ctx.clearRect(0, 0, W, H);
+    drawFibers();
+  }
+
+  /**
+   * Allocation-free fused render of all 36 fibers: the verbatim fiber/stroke
+   * math inlined with per-paint hoisted constants (pitch trig, ring origin,
+   * width/alpha pair, theme palette). No per-frame arrays (fiber()/rot()
+   * allocate; the live loop must not). Gates identical to stroke(): null
+   * `d<0.07`, runaway `m^2>49` (same set as `hypot>7` for these magnitudes),
+   * perspective `1/(1-r[2]*0.06)`, scale `min(W,H)*0.17`.
+   */
+  function drawFibers(): void {
+    const a = Math.cos(cur.th / 2);
+    const b = Math.sin(cur.th / 2);
+    const S = Math.min(W, H) * 0.17;
+    const gx = W * (isMobileViewport() ? GROUP_X_MOBILE : GROUP_X_DESKTOP);
+    const halfH = H / 2;
+    const pc = Math.cos(pitch);
+    const ps = Math.sin(pitch);
+    const M = spinState.M;
+    const [lw, al] = FIBER_STYLE;
+    const pal = theme === "light" ? PALETTE_LIGHT : PALETTE_DARK;
+    const TAU = Math.PI * 2;
     ctx.lineCap = "round";
     for (let k = 0; k < FIBER_COUNT; k++) {
-      const ph = (k / FIBER_COUNT) * 2 * Math.PI;
-      stroke(ctx, fiber(cur.th, ph), fiberColor(ph, theme), 1.6, 0.7, W, H, spinState.M, pitch);
+      const ph = (k / FIBER_COUNT) * TAU;
+      ctx.strokeStyle = pal[k];
+      ctx.lineWidth = lw;
+      ctx.globalAlpha = al;
+      ctx.beginPath();
+      let pen = false;
+      for (let i = 0; i <= FIBER_SEGMENTS; i++) {
+        const t = (i / FIBER_SEGMENTS) * TAU;
+        const d = 1 - b * Math.sin(t + ph);
+        if (d < 0.07) {
+          pen = false;
+          continue;
+        }
+        const x0 = (a * Math.cos(t)) / d;
+        const y0 = (a * Math.sin(t)) / d;
+        const z0 = (b * Math.cos(t + ph)) / d;
+        if (x0 * x0 + y0 * y0 + z0 * z0 > 49) {
+          pen = false;
+          continue;
+        }
+        // rot() inlined: c=1/s=0 simplify to a matrix multiply, then pitch.
+        const p = M[0] * x0 + M[1] * y0 + M[2] * z0;
+        const q = M[3] * x0 + M[4] * y0 + M[5] * z0;
+        const e = M[6] * x0 + M[7] * y0 + M[8] * z0;
+        const f = 1 / (1 - e * 0.06);
+        if (pen) ctx.lineTo(gx + p * S * f, halfH - (pc * q - ps * e) * S * f);
+        else ctx.moveTo(gx + p * S * f, halfH - (pc * q - ps * e) * S * f);
+        pen = true;
+      }
+      ctx.stroke();
     }
+    ctx.globalAlpha = 1;
   }
 
   function step(dt: number): void {
@@ -387,17 +510,22 @@ export function createHopf2D(
   function frame(now: number): void {
     if (disposed || reducedMotion) return;
     raf = requestAnimationFrame(frame);
-    if (paused) {
-      last = now;
+    if (paused || hiddenPaused) {
+      lastRender = now;
       return;
     }
-    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000 || 0.016));
-    last = now;
+    // Adaptive frame skip: 60fps while interactive, 30fps once idle.
+    const interval = now - lastInput < IDLE_AFTER_MS ? FRAME_MIN_INTERVAL_MS : FRAME_IDLE_INTERVAL_MS;
+    if (now - lastRender < interval - 1) return;
+    const dt = Math.min(0.05, Math.max(0, (now - lastRender) / 1000 || 0.016));
+    lastRender = now;
     step(dt);
   }
 
   function onPointerMove(ev: PointerEvent): void {
-    if (disposed || coarse) return; // coarse: auto-drift, mouse ignored
+    if (disposed) return;
+    lastInput = typeof performance !== "undefined" ? performance.now() : 0;
+    if (coarse) return; // coarse: auto-drift, mouse ignored
     const rect = canvas.getBoundingClientRect();
     const nx = (ev.clientX - rect.left) / Math.max(1, rect.width);
     const ny = (ev.clientY - rect.top) / Math.max(1, rect.height);
@@ -425,10 +553,21 @@ export function createHopf2D(
     if (reducedMotion) paint();
   }
 
+  function onVisibilityChange(): void {
+    if (typeof document === "undefined") return;
+    const hidden = document.hidden;
+    if (hidden === hiddenPaused) return;
+    hiddenPaused = hidden;
+    syncRaf();
+  }
+
   fit();
   window.addEventListener("resize", onResize);
   window.addEventListener("pointermove", onPointerMove, { passive: true });
   window.addEventListener("pointerdown", onPointerDown, { passive: true });
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", onVisibilityChange);
+  }
 
   const themeObserver =
     typeof MutationObserver !== "undefined"
@@ -454,23 +593,44 @@ export function createHopf2D(
     // Single beauty frame, zero rAF at rest.
     paint();
   } else {
-    last = typeof performance !== "undefined" ? performance.now() : 0;
-    raf = requestAnimationFrame(frame);
+    syncRaf();
   }
 
   function setPaused(p: boolean): void {
     paused = p;
-    if (p && raf) {
+    syncRaf();
+  }
+
+  /**
+   * Covered-by-sheet pause (separate from `setPaused`): the page tells the
+   * renderer when the rising sheet hides the hero, so an invisible animation
+   * stops consuming CPU without fighting the offscreen/visibility pauses.
+   */
+  function setCovered(c: boolean): void {
+    if (covered === c) return;
+    covered = c;
+    syncRaf();
+  }
+
+  /**
+   * Single writer of the rAF cycle: idle/hidden/offscreen/covered all route
+   * through it; a resume never fights an active cancel. Restarts with
+   * lastRender=0 so the dt cap absorbs long pauses without a visual jump.
+   */
+  function syncRaf(): void {
+    const wanted = !disposed && !reducedMotion && !paused && !hiddenPaused && !covered;
+    if (wanted && !raf) {
+      lastRender = 0;
+      raf = requestAnimationFrame(frame);
+    } else if (!wanted && raf) {
       cancelAnimationFrame(raf);
       raf = 0;
-    } else if (!p && !reducedMotion && !disposed && !raf) {
-      last = typeof performance !== "undefined" ? performance.now() : 0;
-      raf = requestAnimationFrame(frame);
     }
   }
 
   return {
     setPaused,
+    setCovered,
     renderOnce,
     dispose() {
       disposed = true;
@@ -481,6 +641,9 @@ export function createHopf2D(
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+      }
     },
   };
 }

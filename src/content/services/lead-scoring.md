@@ -8,7 +8,6 @@ bullets:
   - "Señales conductuales y firmográficas"
   - "Sincronización con tu CRM"
 lang: "es"
-card: "full"
 outcome: "Tu equipo llama primero a quien sí va a comprar."
 ---
 

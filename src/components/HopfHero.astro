@@ -155,12 +155,37 @@ const {
       }
     }
 
+    /* Sheet-cover signal: the page marks <html data-hero-covered> once the
+       rising sheet hides the hero, so the renderer stops burning CPU on an
+       invisible canvas. Separate from the offscreen/visibility pauses. */
+    function coverState(): boolean {
+      return (
+        typeof document !== "undefined" &&
+        document.documentElement.getAttribute("data-hero-covered") === "true"
+      );
+    }
+
+    function applyCoverState(): void {
+      var handle = root._hopfHandle;
+      if (handle && typeof handle.setCovered === "function") {
+        handle.setCovered(coverState());
+      }
+    }
+
+    if (typeof MutationObserver !== "undefined") {
+      new MutationObserver(applyCoverState).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-hero-covered"],
+      });
+    }
+
     function hydrate() {
       if (started) return;
       started = true;
       try {
-        var handle = createHopf2D(canvas, { reducedMotion: reduced });
+        const handle = createHopf2D(canvas, { reducedMotion: reduced });
         showCanvas();
+        applyCoverState();
         if (reduced) {
           // Single beauty frame is already painted inside createHopf2D;
           // pointermove re-renders one frame each (handled in the module).

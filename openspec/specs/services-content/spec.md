@@ -18,15 +18,15 @@ The system MUST load service, pillar, vision, and mission content from content c
 - WHEN collections validate
 - THEN the build succeeds without schema error.
 
-### Requirement: Priority Full Cards and Summary Cards
+### Requirement: Uniform Service Cards
 
-The system MUST render 5 full cards (Notificaciones [1], Documentación [2], Lead Scoring [5], Dashboards [7], Agendamiento [8, DRAFT]) and 3 summary cards (Bots CRM, Tele-Agentes IA, Marketing Bots). Every card MUST render `<a class="example-hint" href="/servicios/{slug}">`. Full cards MUST also render `<p class="card-outcome">` from `outcome`. DRAFT MUST render badge from `draftLabel`. Dashboards MUST use CSS/SVG mock only.
+The system MUST render all 8 services as equal cards (Notificaciones [1], Documentación [2], Bots CRM [3], Tele-Agentes IA [4], Lead Scoring [5], Marketing Bots [6], Dashboards [7], Agendamiento [8, DRAFT]) in a single grid. Every card MUST render the same shape: pillar pill → icon-box → title → summary → 3 bullets → outcome → deep-link hint. There MUST be no card-size variants and no inline visual mock inside cards. DRAFT MUST render badge from `draftLabel`. Cards MUST NOT carry a `card` frontmatter field.
 
-#### Scenario: Card inventory 5+3
+#### Scenario: Card inventory 8
 
 - GIVEN `/` renders `#services`
-- WHEN cards are counted (5 `.card-full` + 3 `.card-summary`)
-- THEN titles, pillars, DRAFT match inventory.
+- WHEN cards are counted (8 `.card-full`, 0 `.card-summary`)
+- THEN titles, pillars, bullets, outcome, and DRAFT match inventory.
 
 #### Scenario: Hints deep-link, never self-anchor
 
@@ -34,21 +34,21 @@ The system MUST render 5 full cards (Notificaciones [1], Documentación [2], Lea
 - WHEN each hint `href` is read
 - THEN it equals `/servicios/{slug}` and zero point to `#services`.
 
-#### Scenario: Outcome full-only, CTA on all
+#### Scenario: Same shape on every card
 
-- GIVEN a full and a summary card render
-- WHEN outcome and CTA rows are inspected
-- THEN full shows outcome + CTA; summary shows CTA without outcome.
+- GIVEN any card renders
+- WHEN its rows are inspected
+- THEN it shows 3 bullets, one outcome, and one hint — no card is thinner than another.
 
-#### Scenario: Mock dashboard
+#### Scenario: No inline mock in cards
 
-- GIVEN Dashboards card renders
+- GIVEN any card renders
 - WHEN its visual is inspected
-- THEN it is CSS/SVG mock with no fetch.
+- THEN it carries no embedded mock; the demo lives on its detail page.
 
 ### Requirement: Pillars Strip and Vision/Mission Placeholders
 
-The system MUST render the 3-pillar strip (Data Science / Cybersecurity / Automations) and vision/mission sections with explicit TBD placeholders that MUST NOT block build or deploy.
+The system MUST render the 2-pillar strip (Data Science / Automations) and vision/mission sections with explicit TBD placeholders that MUST NOT block build or deploy. The Cybersecurity pillar MUST NOT exist anywhere on the site (collection, hero echo, pillar grid, nav link).
 
 #### Scenario: Placeholders visible, build green
 
@@ -64,55 +64,53 @@ The system MUST render the 3-pillar strip (Data Science / Cybersecurity / Automa
 
 ### Requirement: No Numeric KPI Claims
 
-Services `#services` DOM and `src/content/services/*.md` MUST NOT contain numeric KPI patterns (`[+-]?%`, `\d+%`, `x\d`, standalone `%` claims). Outcome lines MUST be qualitative, with no counts as results.
+Services `#services` DOM, `src/content/services/*.md`, and detail-page copy outside ported demo bodies (`h1`, outcomes, bullets, captions, CTAs, SEO/meta, incl. all new copy) MUST NOT contain numeric KPI patterns (`[+-]?%`, `\d+%`, `x\d`, standalone `%` claims). Ported demo bodies are the only exemption: numeric chips and sample values are allowed ONLY when the demo body carries its visible "Datos de muestra" note (per service-demos). Outcome lines MUST be qualitative, with no counts as results.
+(Previously: page-wide ban, no demo-body carve-out.)
 
-#### Scenario: KPI patterns absent
+#### Scenario: KPI patterns absent outside demo bodies
 
-- GIVEN `#services` DOM and services md sources
+- GIVEN `#services` DOM, services md sources, and detail-page copy outside demo bodies
 - WHEN scanned for `[+-]?%|\d+%|x\d` and standalone `%` claims
 - THEN zero matches exist.
 
 #### Scenario: Qualitative outcomes
 
-- GIVEN each full card renders its outcome
+- GIVEN each card renders its outcome
 - WHEN its text is read
 - THEN it states a qualitative benefit with no numbers.
 
-### Requirement: Static Showcase Strip
+#### Scenario: Sample label gates the exemption
 
-The system MUST render a static "Cómo se ve" strip between summary grid and `.ally-block` with 3 CSS-only mocks (notification row, score bar, schedule card) plus a "Se conecta con" chips row (WhatsApp, Gmail, Slack, HubSpot). Mocks/chips MUST use token colors, `role="img"` + `aria-label`, "Mock ilustrativo" captions, grayscale original inline SVG, and zero external assets or JS.
+- GIVEN a ported demo body contains numeric chips or values
+- WHEN its subtree and visible note are checked
+- THEN every numeric occurrence sits inside a demo body showing the "Datos de muestra" note; bodies with numbers but no note fail.
 
-#### Scenario: Strip placement and static mocks
+#### Scenario: Exemption ends at the demo body
 
-- GIVEN `/` renders `#services`
-- WHEN the strip is inspected
-- THEN 3 CSS mocks appear in order with captions and no fetch or script.
+- GIVEN the figcaption, hero block, and dual CTA render around a demo
+- WHEN they are scanned
+- THEN they contain zero numeric KPI patterns.
 
-#### Scenario: Original grayscale chips
+### Requirement: Lede, Hero Copy, Ally Navigation and Pillar Lines
 
-- GIVEN the chips row renders
-- WHEN icons are inspected
-- THEN 4 abstract grayscale marks render inline with `currentColor`, no copied logo paths.
+Section lede MUST read "Ocho soluciones, el mismo estándar de calidad." The hero MUST NOT render `hero-proof` or `hero-note` copy. `.ally-block` MUST keep the "Solicita una demo" CTA linking to `#contact` and MUST NOT render a "Ver cómo se ve" link. Each `.pillar-card` MUST render a qualitative `<p class="pillar-proof">` for the 2 remaining pillars.
 
-### Requirement: Hero Proof, Lede, Ally Navigation and Pillar Lines
-
-Section lede MUST read "Cinco soluciones prioritarias a fondo, tres capacidades resumidas." Hero MUST render qualitative `<p class="hero-proof">` in `var(--muted)` preserving AA in both themes. `.ally-block` MUST add ghost "Ver cómo se ve" → `#services` beside the existing demo CTA. Each `.pillar-card` MUST render qualitative `<p class="pillar-proof">`; the security line MUST frame practice, not product claim.
-
-#### Scenario: Lede, hero proof and ghost navigation
+#### Scenario: Lede, lean hero and ally navigation
 
 - GIVEN `/` renders hero, `#services` lede, and ally block
 - WHEN text and links are read
-- THEN "Cinco…" lede, qualitative hero-proof, and ghost button to `#services` exist.
+- THEN "Ocho…" lede is present, zero `hero-proof`/`hero-note` nodes exist, and the ally block carries only the `#contact` CTA.
 
 #### Scenario: Pillar lines without overclaim
 
 - GIVEN pillar cards render
-- WHEN the security pillar-proof is read
-- THEN it states trazabilidad/revisión practice with no feature claim.
+- WHEN each pillar-proof is read
+- THEN it states a qualitative practice with no feature claim or KPI.
 
 ### Requirement: Service Detail Routes
 
-The system MUST generate 8 static routes `/servicios/{slug}` via `getStaticPaths` from `services` collection (`output:"static"`). Each page MUST render: breadcrumb (`Servicios › {Title}`, `aria-label="breadcrumb"`); compact hero (pill + `h1` + outcome-as-sub on full / summary-as-sub on summary + DRAFT badge); value bullets (full: 3 frontmatter + 1 body-derived; summary: 1 bullet + body + 2 generic practice rows, no invented features/KPIs); static CSS/SVG `ejemplo` figure (`role="img"`, caption `Mock ilustrativo — sin datos reales`, token-only, zero external assets; full pages MAY add ≤1 `<script is:inline>` island, summaries MUST have zero); dual CTA (`Solicita una demo → /#contact` + `Volver a servicios → /#services`); per-page SEO (`{Service} — Lamnda` title, derived description ≤155 chars, canonical `/servicios/{slug}`). Pages MUST contain zero numeric KPI patterns.
+The system MUST generate 8 static routes `/servicios/{slug}` via `getStaticPaths` from `services` collection (`output:"static"`). Each page MUST render: breadcrumb (`Servicios › {Title}`, `aria-label="breadcrumb"`); compact hero (pill + `h1` + outcome-as-sub + DRAFT badge); value bullets (3 frontmatter + 1 body-derived for every service, no card-size variants, no invented features/KPIs); `ejemplo` section: for the 7 old-demo slugs (`notificaciones-inteligentes`, `documentacion-automatizada`, `dashboards-dinamicos`, `lead-scoring`, `bots-crm`, `tele-agentes-ia`, `marketing-bots`) the ported demo component per `service-demos` as content of `figure.demo-figure` (caption kept, demo subtree freed of `role="img"`), while `agendamiento-automatico` (DRAFT) keeps its static CSS/SVG mock (`role="img"`, token-only, zero external assets); dual CTA (`Solicita una demo → /#contact` + `Volver a servicios → /#services`); per-page SEO (`{Service} — Lamnda` title, derived description ≤155 chars, canonical `/servicios/{slug}`). Every page MUST hold ≤1 inline script total (component scripts count); the superseded notif tabs-filter page script MUST be removed; `agendamiento-automatico` carries zero. Page copy outside demo bodies MUST contain zero numeric KPI patterns (sample-labeled demo bodies exempt).
+(Previously: static mock everywhere; fulls MAY one island, summaries zero; page-wide KPI scan.)
 
 #### Scenario: Eight static paths build
 
@@ -126,9 +124,9 @@ The system MUST generate 8 static routes `/servicios/{slug}` via `getStaticPaths
 - WHEN hero and CTA blocks are read
 - THEN breadcrumb, `h1`, sub, and both CTAs exist.
 
-#### Scenario: Thin-summary fallback without invention
+#### Scenario: Uniform value rows
 
-- GIVEN a summary page (1 bullet, 1-line body) renders
+- GIVEN any detail page renders
 - WHEN the value list is read
 - THEN 4 rows appear with no invented features or KPIs.
 
@@ -136,7 +134,19 @@ The system MUST generate 8 static routes `/servicios/{slug}` via `getStaticPaths
 
 - GIVEN any detail page head and body are scanned
 - WHEN title/description/canonical and KPI patterns are checked
-- THEN SEO is page-specific, Agendamiento keeps DRAFT, zero KPI matches exist.
+- THEN SEO is page-specific, Agendamiento keeps DRAFT and zero scripts, and KPI matches exist only inside sample-labeled demo bodies.
+
+#### Scenario: Ported demo island replaces static mock
+
+- GIVEN the 7 old-demo slugs render
+- WHEN each ejemplo figure is inspected
+- THEN the mapped component's old-root DOM replaces the mock with no `role="img"` and unchanged figcaption; `agendamiento-automatico` keeps its static mock.
+
+#### Scenario: One inline script per page including components
+
+- GIVEN all 8 built pages
+- WHEN inline scripts are counted per page
+- THEN the 7 demo pages show exactly 1 each (their component's script), `agendamiento-automatico` shows 0, and `notificaciones-inteligentes` carries no residual tabs-filter page script.
 
 ### Requirement: Service Card Redesign
 

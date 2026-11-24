@@ -68,7 +68,7 @@ test.describe("hero auto-fidelity v4", () => {
   test("reference strips + header states render", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator(".hero-eyebrow")).toHaveText(
-      "DATA / SECURITY / AUTOMATION",
+      "DATA / AUTOMATION",
     );
     await expect(page.locator("#hero-heading")).toHaveText(
       "Complex problems. Elegant solutions.",
@@ -77,8 +77,8 @@ test.describe("hero auto-fidelity v4", () => {
       "Explore our solutions",
     );
     await expect(page.locator(".hero-tag")).toContainText("HOPF FIELD");
-    // Pillars echo: exactly 3 items reusing the collection data.
-    await expect(page.locator("[data-hero-pillar]")).toHaveCount(3);
+    // Pillars echo: exactly 2 items reusing the collection data.
+    await expect(page.locator("[data-hero-pillar]")).toHaveCount(2);
     // #pillars section stays in place below the hero.
     await expect(page.locator("#pillars")).toBeVisible();
     // Header: Home active + Get in touch outline pill with arrow.

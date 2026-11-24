@@ -82,17 +82,16 @@ test.describe("marketing site", () => {
     await context.close();
   });
 
-  test("5 full + 3 summary cards + static showcase strip, qualitative only", async ({
+  test("8 equal service cards, no showcase, qualitative only", async ({
     page,
   }) => {
     await page.goto("/");
-    await expect(page.locator(".card-full")).toHaveCount(5);
-    await expect(page.locator(".card-summary")).toHaveCount(3);
-    const mock = page.locator(".dashboard-mock svg");
-    await expect(mock).toBeVisible();
-    // Mock dashboard fetches no external data.
-    expect(await mock.evaluate((el) => el.querySelectorAll("image").length)).toBe(0);
-    expect(await mock.evaluate((el) => el.innerHTML.includes("fetch"))).toBe(false);
+    // Every service renders the same card: 8 full, 0 summary.
+    await expect(page.locator(".card-full")).toHaveCount(8);
+    await expect(page.locator(".card-summary")).toHaveCount(0);
+    // The inline dashboard mock was removed from the card by decision: every
+    // service card now reads the same, and the demo lives on its detail page.
+    await expect(page.locator(".dashboard-mock")).toHaveCount(0);
     // Card comfort: icon-box 40px tile + arrow-chip CTA on every card.
     await expect(page.locator("#services .icon-box")).toHaveCount(8);
     await expect(page.locator("#services .arrow-chip")).toHaveCount(8);
@@ -100,17 +99,10 @@ test.describe("marketing site", () => {
     expect(iconBox).not.toBeNull();
     expect(Math.round(iconBox!.width)).toBe(40);
     expect(Math.round(iconBox!.height)).toBe(40);
-    // Every full card renders a qualitative outcome + deep-link hint.
+    // Every card renders the same shape: outcome + bullets + deep-link hint.
     for (const card of await page.locator(".card-full").all()) {
       await expect(card.locator(".card-outcome")).toHaveCount(1);
-      const hint = card.locator("a.example-hint");
-      await expect(hint).toHaveCount(1);
-      const href = await hint.getAttribute("href");
-      expect(href).toMatch(/^\/servicios\/[a-z-]+$/);
-    }
-    // Summary cards render CTA without outcome, deep-linked.
-    for (const card of await page.locator(".card-summary").all()) {
-      await expect(card.locator(".card-outcome")).toHaveCount(0);
+      await expect(card.locator("ul li")).toHaveCount(3);
       const hint = card.locator("a.example-hint");
       await expect(hint).toHaveCount(1);
       const href = await hint.getAttribute("href");
@@ -123,28 +115,24 @@ test.describe("marketing site", () => {
     await expect(
       page.locator('#services .draft-badge:has-text("Borrador")'),
     ).toBeVisible();
-    // Lede, hero proof, ally ghost navigation, pillar lines.
+    // Lede, hero proof removed by decision, ally navigation, pillar lines.
     await expect(page.locator("#services .section-lede")).toContainText(
-      "Cinco soluciones prioritarias",
+      "Ocho soluciones",
     );
-    await expect(page.locator(".hero-proof")).toBeVisible();
+    await expect(page.locator(".hero-proof")).toHaveCount(0);
+    await expect(page.locator(".hero-note")).toHaveCount(0);
+    await expect(page.locator(".pillar-proof")).toHaveCount(2);
+    // Cybersecurity was removed from the site: no pillar, no hero echo, no nav.
+    await expect(page.locator('[data-pillar="security"]')).toHaveCount(0);
+    await expect(
+      page.locator('.site-header nav a[data-pillar-link="security"]'),
+    ).toHaveCount(0);
+    // The "Cómo se ve" showcase strip was removed by decision.
+    await expect(page.locator("#showcase")).toHaveCount(0);
+    await expect(page.locator(".showcase-mock")).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Ver cómo se ve" }),
-    ).toHaveAttribute("href", "#services");
-    await expect(page.locator(".pillar-proof")).toHaveCount(3);
-    await expect(
-      page.locator('[data-pillar="security"] .pillar-proof'),
-    ).toContainText("Trazabilidad");
-    // Static strip: 3 mocks + 4 chips + illustrative note.
-    await expect(page.locator("#showcase")).toBeVisible();
-    await expect(page.locator("#showcase .showcase-mock")).toHaveCount(3);
-    await expect(page.locator("#showcase .showcase-chips li")).toHaveCount(4);
-    for (const name of ["WhatsApp", "Gmail", "Slack", "HubSpot"]) {
-      await expect(
-        page.locator("#showcase .showcase-chips", { hasText: name }),
-      ).toBeVisible();
-    }
-    await expect(page.locator("#showcase")).toContainText("Mock ilustrativo");
+    ).toHaveCount(0);
     // No numeric KPI claims anywhere inside #services.
     const servicesText =
       (await page.locator("#services").textContent()) ?? "";

@@ -1,6 +1,6 @@
 import { defineCollection, z } from "astro:content";
 
-const pillarEnum = z.enum(["data", "security", "automation"]);
+const pillarEnum = z.enum(["data", "automation"]);
 
 export const service = z.object({
   title: z.string(),
@@ -9,14 +9,13 @@ export const service = z.object({
   summary: z.string(),
   bullets: z.array(z.string()).max(5),
   lang: z.enum(["es", "en"]),
-  card: z.enum(["full", "summary"]),
   draftLabel: z.string().optional(),
   outcome: z.string().optional(),
 });
 
 export const pillar = z.object({
   title: z.string(),
-  key: z.enum(["data", "security", "automation"]),
+  key: z.enum(["data", "automation"]),
   tagline: z.string(),
   lang: z.enum(["es", "en"]),
 });

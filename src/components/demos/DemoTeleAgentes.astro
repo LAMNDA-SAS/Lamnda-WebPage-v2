@@ -1,0 +1,658 @@
+---
+/**
+ * Port of the old site's `service-voice-agents.html` `#ejemplo` live demo.
+ * Verbatim markup and class names; used-selector CSS remapped to v2 tokens
+ * under the `[data-demo="tele-agentes-ia"]` root (design D3). One guarded
+ * inline IIFE (D1/D4): Web Speech walk kept 1:1 (best-es-voice ranking,
+ * phrase pacing, stop, and the very same no-TTS swap + timing simulation),
+ * plus the checked "Simular sin audio" path.
+ * RM consumption (D2): auto-scroll `scrollIntoView` uses behavior
+ * REDUCED ? 'auto' : 'smooth'; CSS motion (lead-pop, progress transition)
+ * is killed under prefers-reduced-motion as on the old site.
+ * Directed adaptations: ▶/⏹ glyphs dropped (text buttons); ● chips become
+ * plain text; old CTAs dropped.
+ */
+---
+<div class="example-inner" data-demo="tele-agentes-ia">
+    <span class="example-badge">Ejemplo en vivo</span>
+    <h3 class="example-outcome">100 llamadas calificadas antes del desayuno</h3>
+    <p class="example-sub">El tele-agente llama, califica y agenda; tú solo ves el resumen con sentimiento y resolución.</p>
+    <ul class="example-kpis">
+        <li>3:24 duración media</li>
+        <li>92% sentimiento +</li>
+        <li class="example-kpi-accent">68% resolución</li>
+    </ul>
+    <p class="example-sample-note">Datos de muestra con fines ilustrativos.</p>
+    <div class="example-frame">
+        <div class="example-frame-bar"><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-title">Llamada #231 · Calificación outbound</span></div>
+        <div class="example-frame-body">
+            <div class="example-voice-top">
+                <span class="example-speaker-chip is-idle" id="voiceSpeaker">En espera</span>
+                <div class="example-progress" role="progressbar" aria-label="Progreso de la llamada" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="voiceProgressBar"><div class="example-progress-fill" id="voiceProgress"></div></div>
+                <span class="example-progress-label" id="voiceCounter">0 / 10</span>
+            </div>
+            <div class="example-voice-grid">
+                <div class="example-transcript" id="voiceTranscript">
+                    <div class="example-voice-turn" data-field="nombre,empresa,interes" data-fill='{"nombre":"Andrés Ríos","empresa":"Distribuidora Andina","interes":"Notificaciones Inteligentes"}' data-say="Buenos días, soy Andrés Ríos, de Distribuidora Andina. Las notificaciones de pagos de pedidos se nos pierden y queremos alertas por WhatsApp y correo."><span class="example-speaker example-speaker-client">Cliente · 0:00</span>Buenos días, soy Andrés Ríos, de Distribuidora Andina. Las notificaciones de pagos de pedidos se nos pierden y queremos alertas por WhatsApp y correo.</div>
+                    <div class="example-voice-turn" data-say="Mucho gusto, don Andrés, gracias por contactar a Lamnda. Entiendo que necesitan no perder pagos de pedidos con alertas por WhatsApp y correo, ¿cuántos pedidos y avisos manejan al día?"><span class="example-speaker example-speaker-agent">Agente IA · 0:18</span>Mucho gusto, don Andrés, gracias por contactar a Lamnda. Entiendo que necesitan no perder pagos de pedidos con alertas por WhatsApp y correo, ¿cuántos pedidos y avisos manejan al día?</div>
+                    <div class="example-voice-turn" data-say="Manejamos unos doscientos pedidos al mes y unos ochenta avisos urgentes, casi todo por WhatsApp, algo por correo."><span class="example-speaker example-speaker-client">Cliente · 0:38</span>Manejamos unos doscientos pedidos al mes y unos ochenta avisos urgentes, casi todo por WhatsApp, algo por correo.</div>
+                    <div class="example-voice-turn" data-say="Perfecto, para ese volumen le sirven nuestras Notificaciones Inteligentes: detectamos pago confirmado, pedido listo y factura vencida, y avisamos al instante."><span class="example-speaker example-speaker-agent">Agente IA · 0:55</span>Perfecto, para ese volumen le sirven nuestras Notificaciones Inteligentes: detectamos pago confirmado, pedido listo y factura vencida, y avisamos al instante.</div>
+                    <div class="example-voice-turn" data-say="Salimos por WhatsApp, correo, Telegram, Slack y Outlook en menos de un minuto, en una semana queda listo, base desde ochocientos dólares según volumen."><span class="example-speaker example-speaker-agent">Agente IA · 1:12</span>Salimos por WhatsApp, correo, Telegram, Slack y Outlook en menos de un minuto, en una semana queda listo, base desde ochocientos dólares según volumen.</div>
+                    <div class="example-voice-turn" data-field="telefono,correo,fecha" data-fill='{"telefono":"+57 310 245 6789","correo":"andres.rios@distribuidora-andina.com","fecha":"Hoy · llamada"}' data-say="Me interesa, agendemos. Mi teléfono es, más cincuenta y siete, trescientos diez, dos cuarenta y cinco, sesenta y siete ochenta y nueve, y mi correo es, andrés punto ríos arroba distribuidora andina punto com."><span class="example-speaker example-speaker-client">Cliente · 1:30</span>Me interesa, agendemos. Mi teléfono es +57 310 245 6789 y mi correo es andres.rios@distribuidora-andina.com.</div>
+                    <div class="example-voice-turn" data-say="Con gusto. Nuestra asesora Laura Gómez le ofrece veinte minutos el martes a las diez o el miércoles a las tres, ¿cuál prefiere?"><span class="example-speaker example-speaker-agent">Agente IA · 1:52</span>Con gusto. Nuestra asesora Laura Gómez le ofrece veinte minutos el martes a las diez o el miércoles a las tres, ¿cuál prefiere?</div>
+                    <div class="example-voice-turn" data-field="asesoria" data-value="Martes · 10:00 a. m." data-fill='{"asesoria":"Martes · 10:00 a. m."}' data-say="El martes a las diez me sirve perfecto."><span class="example-speaker example-speaker-client">Cliente · 2:08</span>El martes a las diez me sirve perfecto.</div>
+                    <div class="example-voice-turn" data-field="asesoria" data-value="Martes · 10:00 a. m." data-fill='{"asesoria":"Martes · 10:00 a. m."}' data-say="Queda agendada su asesoría con Laura Gómez para el martes a las diez, veinte minutos por videollamada. Le enviaremos el enlace al correo."><span class="example-speaker example-speaker-agent">Agente IA · 2:14</span>Queda agendada su asesoría con Laura Gómez para el martes a las diez, veinte minutos por videollamada. Le enviaremos el enlace al correo.</div>
+                    <div class="example-voice-turn" data-say="Muchas gracias, quedo atento. Hasta el martes."><span class="example-speaker example-speaker-client">Cliente · 2:28</span>Muchas gracias, quedo atento. Hasta el martes.</div>
+                </div>
+                <aside class="example-lead-panel" aria-live="polite" aria-label="Registro del lead en vivo">
+                    <h4>Registro del lead en vivo</h4>
+                    <p class="example-lead-hint">Se completa solo mientras suena la llamada.</p>
+                    <ul class="example-lead-fields">
+                        <li data-field="nombre"><span>Nombre</span><strong id="leadNombre">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="empresa"><span>Empresa</span><strong id="leadEmpresa">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="interes"><span>Interés</span><strong id="leadInteres">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="telefono"><span>Teléfono</span><strong id="leadTelefono">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="correo"><span>Correo</span><strong id="leadCorreo">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="fecha"><span>Fecha</span><strong id="leadFecha">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                        <li data-field="asesoria"><span>Fecha asesoría</span><strong id="leadAsesoria">—</strong><i class="example-lead-check" aria-hidden="true">✓</i></li>
+                    </ul>
+                </aside>
+            </div>
+            <div class="example-voice-kpis">
+                <div class="example-voice-kpi"><strong>3:24</strong><span>Duración</span></div>
+                <div class="example-voice-kpi"><strong>92%</strong><span>Sentimiento +</span></div>
+                <div class="example-voice-kpi"><strong>Agendada</strong><span>Cita mar. 10 a. m.</span></div>
+            </div>
+            <div class="example-tts-row">
+                <button type="button" class="example-play-btn" id="voicePlay">Escuchar</button>
+                <button type="button" class="example-stop-btn" id="voiceStop">Detener</button>
+                <button type="button" class="example-sim-btn" id="voiceSimulate">Simular sin audio</button>
+            </div>
+            <p class="example-tts-note" id="voiceNote">Pulsa «Escuchar» para oír la conversación con voz en español. Datos de muestra.</p>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+/* Tele-agents demo — old demos.css used-selectors rebased from .live-example
+   to [data-demo="tele-agentes-ia"], colors remapped to v2 tokens (D3/D7).
+   Agent role stays primary; client role maps old pink to the danger pair. */
+
+[data-demo="tele-agentes-ia"] {
+    --demo-ok: #4ade80;
+    --demo-warn: #fbbf24;
+    --demo-danger: #f87171;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+html[data-theme="light"] [data-demo="tele-agentes-ia"] {
+    --demo-ok: #15803d;
+    --demo-warn: #b45309;
+    --demo-danger: #b91c1c;
+}
+
+[data-demo="tele-agentes-ia"] .example-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+
+[data-demo="tele-agentes-ia"] h3.example-outcome {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+[data-demo="tele-agentes-ia"] .example-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0 0 20px;
+    max-width: 700px;
+}
+
+[data-demo="tele-agentes-ia"] .example-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+[data-demo="tele-agentes-ia"] .example-kpis li {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    white-space: nowrap;
+}
+
+[data-demo="tele-agentes-ia"] .example-kpis li.example-kpi-accent {
+    background: var(--primary-text);
+    color: var(--bg);
+    border-color: var(--primary-text);
+}
+
+[data-demo="tele-agentes-ia"] .example-sample-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+[data-demo="tele-agentes-ia"] .example-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+[data-demo="tele-agentes-ia"] .example-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+}
+
+[data-demo="tele-agentes-ia"] .example-frame-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+[data-demo="tele-agentes-ia"] .example-frame-dot:first-child { background: var(--primary); }
+[data-demo="tele-agentes-ia"] .example-frame-dot:nth-child(2) { background: var(--primary); }
+[data-demo="tele-agentes-ia"] .example-frame-dot:nth-child(3) { background: var(--primary); }
+
+[data-demo="tele-agentes-ia"] .example-frame-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="tele-agentes-ia"] .example-frame-body {
+    padding: 20px;
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+[data-demo="tele-agentes-ia"] .example-speaker-chip {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border-radius: 50px;
+    padding: 6px 14px;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+[data-demo="tele-agentes-ia"] .example-speaker-chip.is-agent {
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+    color: var(--primary-text);
+    border-color: color-mix(in srgb, var(--primary-text) 30%, transparent);
+}
+
+[data-demo="tele-agentes-ia"] .example-speaker-chip.is-client {
+    background: color-mix(in srgb, var(--demo-danger) 12%, var(--card));
+    color: var(--demo-danger);
+    border-color: color-mix(in srgb, var(--demo-danger) 30%, transparent);
+}
+
+[data-demo="tele-agentes-ia"] .example-progress {
+    flex: 1;
+    height: 6px;
+    background: var(--surface);
+    border-radius: 50px;
+    overflow: hidden;
+    min-width: 60px;
+}
+
+[data-demo="tele-agentes-ia"] .example-progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 50px;
+    background: var(--primary-text);
+    transition: width 0.4s ease;
+}
+
+[data-demo="tele-agentes-ia"] .example-progress-label {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+[data-demo="tele-agentes-ia"] .example-transcript {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    margin-bottom: 0;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+[data-demo="tele-agentes-ia"] .example-transcript .example-speaker {
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 8px;
+}
+
+[data-demo="tele-agentes-ia"] .example-transcript .example-speaker-agent { color: var(--primary-text); }
+[data-demo="tele-agentes-ia"] .example-transcript .example-speaker-client { color: var(--demo-danger); }
+
+[data-demo="tele-agentes-ia"] .example-voice-turn {
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-turn.example-speaking {
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-text) 40%, transparent);
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-kpi strong {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+[data-demo="tele-agentes-ia"] .example-voice-kpi span {
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    align-self: start;
+    position: sticky;
+    top: 0;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-panel h4 {
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-hint {
+    margin: 0 0 12px;
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li {
+    display: grid;
+    grid-template-columns: 72px 1fr 22px;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li span {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li strong {
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li.is-filled {
+    background: color-mix(in srgb, var(--demo-ok) 12%, var(--card));
+    border-color: color-mix(in srgb, var(--demo-ok) 35%, transparent);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li.is-filled strong {
+    color: var(--demo-ok);
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-check {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--demo-ok);
+    color: var(--bg);
+    font-size: 0.7rem;
+    font-weight: 800;
+    font-style: normal;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li.is-filled .example-lead-check {
+    display: inline-flex;
+}
+
+[data-demo="tele-agentes-ia"] .example-lead-fields li.example-lead-pop {
+    animation: demo-tele-lead-pop 0.45s ease both;
+}
+
+@keyframes demo-tele-lead-pop {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
+[data-demo="tele-agentes-ia"] .example-tts-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+[data-demo="tele-agentes-ia"] .example-play-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--primary-text);
+    border: none;
+    border-radius: 50px;
+    padding: 10px 22px;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+[data-demo="tele-agentes-ia"] .example-play-btn:hover {
+    background: color-mix(in srgb, var(--primary-text) 82%, var(--bg));
+}
+
+[data-demo="tele-agentes-ia"] .example-play-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+[data-demo="tele-agentes-ia"] .example-sim-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 22px;
+    cursor: pointer;
+}
+
+[data-demo="tele-agentes-ia"] .example-sim-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+}
+
+[data-demo="tele-agentes-ia"] .example-sim-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+[data-demo="tele-agentes-ia"] .example-stop-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 22px;
+    cursor: pointer;
+}
+
+[data-demo="tele-agentes-ia"] .example-tts-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-demo="tele-agentes-ia"] .example-lead-fields li.example-lead-pop { animation: none; }
+    [data-demo="tele-agentes-ia"] .example-progress-fill { transition: none; }
+}
+
+@media (max-width: 768px) {
+    [data-demo="tele-agentes-ia"] h3.example-outcome { font-size: 1.5rem; }
+    [data-demo="tele-agentes-ia"] .example-frame-body { padding: 14px; }
+    [data-demo="tele-agentes-ia"] .example-voice-grid { grid-template-columns: 1fr; }
+    [data-demo="tele-agentes-ia"] .example-voice-kpis { grid-template-columns: 1fr; }
+}
+</style>
+
+<script is:inline>
+/* Port of the old Web Speech demo IIFE, 1:1 engine (voice ranking, per-turn
+   highlight + lead fill, stop, no-TTS swap, 1.6s/turn simulation), scoped to
+   the demo root (D1/D4). RM: scrollIntoView behavior auto under RM (D2). */
+(function () {
+    try {
+        var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var root = document.querySelector('[data-demo="tele-agentes-ia"]');
+        if (!root) return;
+        var play = root.querySelector('#voicePlay'), stop = root.querySelector('#voiceStop'), sim = root.querySelector('#voiceSimulate');
+        var progress = root.querySelector('#voiceProgress'), progressBar = root.querySelector('#voiceProgressBar'), counter = root.querySelector('#voiceCounter'), chip = root.querySelector('#voiceSpeaker');
+        var turns = root.querySelectorAll('#voiceTranscript .example-voice-turn'), note = root.querySelector('#voiceNote');
+        var hasTTS = ('speechSynthesis' in window) && typeof SpeechSynthesisUtterance !== 'undefined';
+        var fieldIds = { nombre: 'leadNombre', empresa: 'leadEmpresa', interes: 'leadInteres', telefono: 'leadTelefono', correo: 'leadCorreo', fecha: 'leadFecha', asesoria: 'leadAsesoria' };
+        var speaking = false, simActive = false, timers = [], bestVoice = null;
+        /* Best Spanish voice: prefer Google español / Microsoft Natural / Neural (es-US/es-ES), lang startsWith es. */
+        function rankVoice(v) {
+            var n = (v.name || '').toLowerCase(), l = (v.lang || '').toLowerCase();
+            if (l.indexOf('es') !== 0) return -1;
+            var s = 10;
+            if (l === 'es-us') s += 6; else if (l === 'es-es') s += 5; else if (l.indexOf('es-') === 0) s += 3;
+            if (n.indexOf('google') !== -1) s += 6;
+            if (n.indexOf('microsoft') !== -1) s += 5;
+            if (n.indexOf('natural') !== -1) s += 4;
+            if (n.indexOf('neural') !== -1) s += 4;
+            if (n.indexOf('sabina') !== -1 || n.indexOf('dalia') !== -1 || n.indexOf('paloma') !== -1) s += 2;
+            return s;
+        }
+        function pickBestVoice() {
+            try {
+                var vs = speechSynthesis.getVoices() || [];
+                var best = null, bs = -1;
+                vs.forEach(function (v) { var s = rankVoice(v); if (s > bs) { bs = s; best = v; } });
+                bestVoice = best || null;
+            } catch (e) { bestVoice = null; }
+        }
+        function clearTimers() { timers.forEach(function (t) { clearTimeout(t); }); timers = []; }
+        function clearHi() { turns.forEach(function (t) { t.classList.remove('example-speaking'); }); }
+        function resetLead() {
+            Object.keys(fieldIds).forEach(function (k) {
+                var el = root.querySelector('#' + fieldIds[k]);
+                if (el) el.textContent = '—';
+                var li = root.querySelector('.example-lead-panel [data-field="' + k + '"]');
+                if (li) li.classList.remove('is-filled', 'example-lead-pop');
+            });
+        }
+        function fillLeadForTurn(turn) {
+            var obj = null;
+            var raw = turn.getAttribute('data-fill');
+            if (raw) { try { obj = JSON.parse(raw); } catch (e) { obj = null; } }
+            if (!obj) {
+                var f = turn.getAttribute('data-field'), v = turn.getAttribute('data-value');
+                if (f && v && f.indexOf(',') === -1) { obj = {}; obj[f] = v; }
+            }
+            if (!obj) return;
+            Object.keys(obj).forEach(function (k) {
+                var id = fieldIds[k];
+                if (!id) return;
+                var el = root.querySelector('#' + id);
+                if (!el || el.textContent === obj[k]) return;
+                el.textContent = obj[k];
+                var li = el.closest('li');
+                if (li) { li.classList.remove('example-lead-pop'); void li.offsetWidth; li.classList.add('is-filled', 'example-lead-pop'); }
+            });
+        }
+        function updateProgress(done) {
+            if (progress) progress.style.width = (done / turns.length * 100) + '%';
+            if (counter) counter.textContent = done + ' / ' + turns.length;
+            if (progressBar) progressBar.setAttribute('aria-valuenow', String(done));
+        }
+        function setChip(turn) {
+            if (!chip) return;
+            if (!turn) { chip.textContent = 'En espera'; chip.className = 'example-speaker-chip is-idle'; return; }
+            var isClient = !!turn.querySelector('.example-speaker-client');
+            chip.textContent = isClient ? 'Cliente' : 'Agente IA';
+            chip.className = 'example-speaker-chip ' + (isClient ? 'is-client' : 'is-agent');
+        }
+        function splitPhrases(text) {
+            var parts = text.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+            if (parts.length <= 1) return [text];
+            return parts.map(function (s, i) { return i < parts.length - 1 ? s + ',' : s; });
+        }
+        function scrollToTurn(turn) {
+            try { turn.scrollIntoView({ block: 'nearest', behavior: REDUCED ? 'auto' : 'smooth' }); } catch (e) {}
+        }
+        function stopAll() {
+            speaking = false; simActive = false; clearTimers();
+            if (hasTTS) { try { speechSynthesis.cancel(); } catch (e) {} }
+            clearHi(); setChip(null);
+            if (play) play.textContent = 'Escuchar';
+            if (sim) sim.disabled = false;
+        }
+        function finishTTS() {
+            speaking = false; clearHi(); setChip(null); updateProgress(turns.length);
+            if (play) play.textContent = 'Escuchar';
+        }
+        function speakTurn(i) {
+            if (!speaking) return;
+            if (i >= turns.length) { finishTTS(); return; }
+            var turn = turns[i];
+            clearHi(); turn.classList.add('example-speaking');
+            scrollToTurn(turn);
+            setChip(turn); fillLeadForTurn(turn); updateProgress(i);
+            var text = turn.getAttribute('data-say') || turn.textContent;
+            var parts = splitPhrases(text);
+            var pi = 0;
+            function speakPart() {
+                if (!speaking) return;
+                if (pi >= parts.length) { updateProgress(i + 1); timers.push(setTimeout(function () { if (speaking) speakTurn(i + 1); }, 250)); return; }
+                var u = new SpeechSynthesisUtterance(parts[pi]);
+                u.lang = 'es-ES'; u.rate = 0.95; u.pitch = 1.0; u.volume = 1;
+                if (bestVoice) u.voice = bestVoice;
+                u.onend = function () { pi++; if (!speaking) return; timers.push(setTimeout(speakPart, 250)); };
+                u.onerror = function () { pi++; if (!speaking) return; timers.push(setTimeout(speakPart, 250)); };
+                try { speechSynthesis.speak(u); } catch (e) { pi++; timers.push(setTimeout(speakPart, 250)); }
+            }
+            speakPart();
+        }
+        function simulateTurn(i) {
+            if (!simActive) return;
+            if (i >= turns.length) { simActive = false; clearHi(); setChip(null); updateProgress(turns.length); if (sim) sim.disabled = false; return; }
+            var turn = turns[i];
+            clearHi(); turn.classList.add('example-speaking');
+            scrollToTurn(turn);
+            setChip(turn); fillLeadForTurn(turn); updateProgress(i);
+            timers.push(setTimeout(function () {
+                if (!simActive) return;
+                updateProgress(i + 1);
+                timers.push(setTimeout(function () { simulateTurn(i + 1); }, 350));
+            }, 1600));
+        }
+        if (!hasTTS) {
+            if (note) note.textContent = 'Tu navegador no soporta lectura por voz (Web Speech API). Usa «Simular sin audio» para ver cómo se llena el registro del lead. Datos de muestra.';
+            if (play) play.disabled = true;
+        } else {
+            pickBestVoice();
+            try { if (typeof speechSynthesis.onvoiceschanged !== 'undefined') speechSynthesis.onvoiceschanged = pickBestVoice; } catch (e) {}
+        }
+        if (play) play.addEventListener('click', function () {
+            if (!hasTTS) return;
+            try { speechSynthesis.cancel(); } catch (e) {}
+            clearTimers(); simActive = false; resetLead(); updateProgress(0);
+            speaking = true;
+            play.textContent = 'Reproduciendo…';
+            if (sim) sim.disabled = true;
+            speakTurn(0);
+        });
+        if (sim) sim.addEventListener('click', function () {
+            try { if (hasTTS) speechSynthesis.cancel(); } catch (e) {}
+            clearTimers(); speaking = false; resetLead(); updateProgress(0);
+            simActive = true; sim.disabled = true;
+            if (play) play.textContent = 'Escuchar';
+            simulateTurn(0);
+        });
+        if (stop) stop.addEventListener('click', stopAll);
+    } catch (e) { if (window.console) console.warn('lamnda-demo', e); }
+})();
+</script>

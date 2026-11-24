@@ -1,0 +1,788 @@
+---
+/**
+ * Port of the old site's `service-notifications.html` `#ejemplo` live demo.
+ * Verbatim markup and class names; used-selector CSS remapped to v2 tokens
+ * under the `[data-demo="notificaciones-inteligentes"]` root (design D3).
+ * One guarded inline IIFE (D1/D4). RM: CSS-only (feature glow + alert
+ * entrance + tooltip motion killed under prefers-reduced-motion, as on the
+ * old site).
+ * Directed adaptations: old CTAs dropped; 🔔/$/!/≡ replaces as placeholder
+ * glyphs (→ "λ" feature tile, "$", "!", "#", "≡" alert icons); vendor SVG
+ * logo strip → text chips (v2 chip pattern, names verbatim).
+ */
+---
+<div class="example-inner" data-demo="notificaciones-inteligentes">
+    <span class="example-badge">Ejemplo en vivo</span>
+    <h3 class="example-outcome">Cada evento crítico llega al instante, sin perseguirlo</h3>
+    <p class="example-sub">Centro de notificaciones por evento: ventas y soporte reaccionan en minutos, no en días.</p>
+    <ul class="example-kpis">
+        <li>-35% tickets repetidos</li>
+        <li>+98% entrega a tiempo</li>
+        <li class="example-kpi-accent">Respuesta en minutos</li>
+    </ul>
+    <p class="example-sample-note">Datos de muestra con fines ilustrativos.</p>
+    <div class="example-frame">
+        <div class="example-frame-bar"><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-title">Centro de notificaciones</span></div>
+        <div class="example-frame-body">
+            <div class="example-featured" role="alert" tabindex="0" aria-describedby="tip-featured">
+                <div class="example-featured-icon" aria-hidden="true">λ<span class="example-featured-check" aria-hidden="true">✓</span></div>
+                <div class="example-featured-content">
+                    <p class="example-featured-title">Alerta destacada · ahora mismo</p>
+                    <dl class="example-meta-grid">
+                        <div><dt>Evento</dt><dd><code>pago_confirmado</code></dd></div>
+                        <div><dt>Cliente</dt><dd>Distribuidora Andina</dd></div>
+                    </dl>
+                    <p class="example-featured-sub">Pedido #4821 por $1.240.000 · notificado por Email, WhatsApp y Slack en menos de 1 minuto.</p>
+                </div>
+                <span class="example-featured-live">En vivo</span>
+                <div class="example-tip" id="tip-featured" role="tooltip"><span class="example-tip-line"><strong>Canal · hora:</strong> Email, WhatsApp y Slack · ahora mismo</span><span class="example-tip-line"><strong>Regla:</strong> Se envía al confirmarse el pago</span><span class="example-tip-line"><strong>Estado:</strong> Entregado</span></div>
+            </div>
+            <div class="example-tabs" role="tablist">
+                <button type="button" class="example-tab example-tab-active" data-filter="all" aria-selected="true">Todas</button>
+                <button type="button" class="example-tab" data-filter="ventas" aria-selected="false">Ventas</button>
+                <button type="button" class="example-tab" data-filter="soporte" aria-selected="false">Soporte</button>
+            </div>
+            <ul class="example-alert-list">
+                <li class="example-alert" data-cat="ventas" tabindex="0" aria-describedby="tip-alert-1"><div class="example-alert-icon example-alert-icon-success" aria-hidden="true">$</div><div class="example-alert-content"><p class="example-alert-title"><strong>Pedido #4821 pagado por $1.240.000</strong><span class="example-unread-dot" aria-hidden="true"></span><span class="example-new">Nuevo</span></p><dl class="example-meta-inline"><div><dt>Evento</dt><dd><code>pago_confirmado</code></dd></div><div><dt>Cliente</dt><dd>Distribuidora Andina</dd></div></dl><div class="example-alert-meta"><span class="example-channel">Email</span><span class="example-time">hace 2 min</span></div></div><div class="example-tip" id="tip-alert-1" role="tooltip"><span class="example-tip-line"><strong>Canal · hora:</strong> Email · hace 2 min</span><span class="example-tip-line"><strong>Regla:</strong> Se envía al confirmarse el pago</span><span class="example-tip-line"><strong>Estado:</strong> Entregado</span></div></li>
+                <li class="example-alert" data-cat="soporte" tabindex="0" aria-describedby="tip-alert-2"><div class="example-alert-icon example-alert-icon-warning" aria-hidden="true">!</div><div class="example-alert-content"><p class="example-alert-title"><strong>Stock bajo: Tinta CMYK &lt; 20 unidades</strong><span class="example-unread-dot" aria-hidden="true"></span></p><dl class="example-meta-inline"><div><dt>Evento</dt><dd><code>stock_bajo</code></dd></div><div><dt>Bodega</dt><dd>Bogotá Norte</dd></div></dl><div class="example-alert-meta"><span class="example-channel">Slack</span><span class="example-time">hace 18 min</span></div></div><div class="example-tip" id="tip-alert-2" role="tooltip"><span class="example-tip-line"><strong>Canal · hora:</strong> Slack · hace 18 min</span><span class="example-tip-line"><strong>Regla:</strong> Se envía cuando el stock baja de 20 unidades</span><span class="example-tip-line"><strong>Estado:</strong> Entregado</span></div></li>
+                <li class="example-alert" data-cat="ventas" tabindex="0" aria-describedby="tip-alert-3"><div class="example-alert-icon example-alert-icon-warning" aria-hidden="true">#</div><div class="example-alert-content"><p class="example-alert-title"><strong>Factura #1093 vencida hace 3 días</strong></p><dl class="example-meta-inline"><div><dt>Evento</dt><dd><code>factura_vencida</code></dd></div><div><dt>Detalle</dt><dd>Recordatorio automático enviado</dd></div></dl><div class="example-alert-meta"><span class="example-channel">WhatsApp</span><span class="example-time">hace 1 h</span></div></div><div class="example-tip" id="tip-alert-3" role="tooltip"><span class="example-tip-line"><strong>Canal · hora:</strong> WhatsApp · hace 1 h</span><span class="example-tip-line"><strong>Regla:</strong> Se envía a los 3 días de vencida la factura</span><span class="example-tip-line"><strong>Estado:</strong> Entregado</span></div></li>
+                <li class="example-alert" data-cat="soporte" tabindex="0" aria-describedby="tip-alert-4"><div class="example-alert-icon example-alert-icon-info" aria-hidden="true">≡</div><div class="example-alert-content"><p class="example-alert-title"><strong>Reporte diario de KPIs listo</strong></p><dl class="example-meta-inline"><div><dt>Evento</dt><dd><code>reporte_diario</code></dd></div><div><dt>Detalle</dt><dd>12 pedidos · 3 devoluciones</dd></div></dl><div class="example-alert-meta"><span class="example-channel">Email</span><span class="example-time">hoy 7:00 a. m.</span></div></div><div class="example-tip" id="tip-alert-4" role="tooltip"><span class="example-tip-line"><strong>Canal · hora:</strong> Email · hoy 7:00 a. m.</span><span class="example-tip-line"><strong>Regla:</strong> Se envía cada mañana a las 7:00 a. m.</span><span class="example-tip-line"><strong>Estado:</strong> Programado</span></div></li>
+            </ul>
+        </div>
+    </div>
+    <div class="example-cta-row example-cta-box">
+        <p class="example-channels-title">Conectamos tus notificaciones a múltiples canales</p>
+        <ul class="example-channels">
+            <li class="example-channel-item"><span>WhatsApp</span></li>
+            <li class="example-channel-item"><span>Gmail</span></li>
+            <li class="example-channel-item"><span>LinkedIn</span></li>
+            <li class="example-channel-item"><span>Telegram</span></li>
+            <li class="example-channel-item"><span>Slack</span></li>
+            <li class="example-channel-item"><span>Outlook</span></li>
+            <li class="example-channel-item"><span>Instagram</span></li>
+            <li class="example-channel-item"><span>SMS</span></li>
+        </ul>
+        <p class="example-slogan">Dinos qué necesitas saber y haremos que se notifique de inmediato.</p>
+    </div>
+</div>
+
+<style is:global>
+/* Notifications demo — old demos.css used-selectors rebased from .live-example
+   to [data-demo="notificaciones-inteligentes"], colors remapped to v2 tokens
+   (design D3/D7). Pure-CSS tooltips; chips replace the vendor SVG strip (D6). */
+
+[data-demo="notificaciones-inteligentes"] {
+    --demo-ok: #4ade80;
+    --demo-warn: #fbbf24;
+    --demo-danger: #f87171;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+html[data-theme="light"] [data-demo="notificaciones-inteligentes"] {
+    --demo-ok: #15803d;
+    --demo-warn: #b45309;
+    --demo-danger: #b91c1c;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+
+[data-demo="notificaciones-inteligentes"] h3.example-outcome {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0 0 20px;
+    max-width: 700px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-kpis li {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-kpis li.example-kpi-accent {
+    background: var(--primary-text);
+    color: var(--bg);
+    border-color: var(--primary-text);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-sample-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: visible;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-frame-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-frame-dot:first-child { background: var(--primary); }
+[data-demo="notificaciones-inteligentes"] .example-frame-dot:nth-child(2) { background: var(--primary); }
+[data-demo="notificaciones-inteligentes"] .example-frame-dot:nth-child(3) { background: var(--primary); }
+
+[data-demo="notificaciones-inteligentes"] .example-frame-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-frame-body {
+    padding: 20px;
+}
+
+/* Featured alert: old navy→blue gradient card → filled primary pair (D3). */
+[data-demo="notificaciones-inteligentes"] .example-featured {
+    position: relative;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--primary-text);
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-text) 18%, transparent), var(--shadow);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 18px;
+    color: var(--bg);
+    animation: demo-notif-feat-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes demo-notif-feat-glow {
+    0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-text) 18%, transparent), var(--shadow); }
+    50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-text) 26%, transparent), var(--shadow); }
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    position: relative;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-check {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--demo-ok);
+    color: var(--bg);
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary-text);
+    box-shadow: var(--shadow);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-content {
+    flex: 1;
+    min-width: 0;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-title {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--bg);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-grid {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 10px;
+    padding: 14px 16px;
+    background: color-mix(in srgb, var(--bg) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--bg) 22%, transparent);
+    border-radius: 12px;
+    max-width: 440px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-grid > div {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-grid dt {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--bg) 85%, transparent);
+    line-height: 1.4;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-grid dd {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--bg);
+    line-height: 1.45;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-grid dd code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--bg);
+    background: color-mix(in srgb, var(--bg) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--bg) 22%, transparent);
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-sub {
+    margin: 0;
+    font-size: 0.8rem;
+    color: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured-live {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--demo-ok);
+    border-radius: 50px;
+    padding: 6px 12px;
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tab {
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tab[aria-selected="true"],
+[data-demo="notificaciones-inteligentes"] .example-tab.example-tab-active {
+    background: var(--primary-text);
+    color: var(--bg);
+    border-color: var(--primary-text);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 14px 14px 20px;
+    overflow: visible;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    animation: demo-notif-alert-in 0.45s ease both;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-list > li:nth-child(2) { animation-delay: 0.06s; }
+[data-demo="notificaciones-inteligentes"] .example-alert-list > li:nth-child(3) { animation-delay: 0.12s; }
+[data-demo="notificaciones-inteligentes"] .example-alert-list > li:nth-child(4) { animation-delay: 0.18s; }
+
+@keyframes demo-notif-alert-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary-text) 25%, transparent);
+    box-shadow: var(--shadow);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert:focus-visible,
+[data-demo="notificaciones-inteligentes"] .example-featured:focus-within {
+    outline: 2px solid var(--primary-text);
+    outline-offset: 2px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 16px 0 0 16px;
+    background: var(--border);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert[data-cat="ventas"]::before {
+    background: var(--demo-ok);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert[data-cat="soporte"]::before {
+    background: var(--primary-text);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--text);
+    font-weight: 800;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-icon-success {
+    background: color-mix(in srgb, var(--demo-ok) 14%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--demo-ok) 35%, transparent);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-icon-warning {
+    background: color-mix(in srgb, var(--demo-warn) 14%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--demo-warn) 40%, transparent);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-icon-info {
+    background: color-mix(in srgb, var(--primary-text) 14%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--primary-text) 30%, transparent);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-content {
+    min-width: 0;
+    flex: 1;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 3px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-title strong {
+    display: inline;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-content strong {
+    font-size: 0.88rem;
+    color: var(--text);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-content span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-unread-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-new {
+    flex-shrink: 0;
+    font-size: 0.66rem !important;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    color: var(--demo-ok) !important;
+    background: color-mix(in srgb, var(--demo-ok) 12%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--demo-ok) 35%, transparent);
+    border-radius: 50px;
+    padding: 2px 9px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-channel {
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: var(--primary-text);
+    background: color-mix(in srgb, var(--primary-text) 10%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--primary-text) 15%, transparent);
+    border-radius: 50px;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-time {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 4px;
+    margin: 4px 0 2px;
+    padding: 0;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline > div {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline > div + div::before {
+    content: "·";
+    color: var(--muted);
+    font-weight: 800;
+    margin-right: 10px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline dt {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline dd {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-meta-inline dd code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+/* CTA box kept minus its buttons: informational strip + slogan stay (D6). */
+[data-demo="notificaciones-inteligentes"] .example-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-cta-box {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-channels-title {
+    margin: 0 0 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-channels {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 16px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+}
+
+/* Vendor SVGs removed; names as v2-style AA chips (D6). */
+[data-demo="notificaciones-inteligentes"] .example-channel-item span {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary-text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 14px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-slogan {
+    margin: 22px 0 0;
+    border-left: none;
+    padding-left: 0;
+    text-align: center;
+    max-width: 560px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-text);
+}
+
+/* Pure-CSS info tooltips (no layout shift). */
+[data-demo="notificaciones-inteligentes"] .example-alert .example-tip,
+[data-demo="notificaciones-inteligentes"] .example-featured .example-tip {
+    position: absolute;
+    z-index: 30;
+    width: max-content;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--primary-text);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 10px 12px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    text-align: left;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert .example-tip {
+    bottom: calc(100% + 12px);
+    right: 12px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-featured .example-tip {
+    top: calc(100% + 12px);
+    right: 12px;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tip-line {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tip-line strong {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+[data-demo="notificaciones-inteligentes"] .example-tip-line:nth-child(3)::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--demo-ok);
+    margin-right: 6px;
+}
+
+[data-demo="notificaciones-inteligentes"] #tip-alert-4 .example-tip-line:nth-child(3)::before {
+    background: var(--demo-warn);
+}
+
+[data-demo="notificaciones-inteligentes"] .example-alert:hover .example-tip,
+[data-demo="notificaciones-inteligentes"] .example-alert:focus-within .example-tip,
+[data-demo="notificaciones-inteligentes"] .example-featured:hover .example-tip,
+[data-demo="notificaciones-inteligentes"] .example-featured:focus-within .example-tip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-demo="notificaciones-inteligentes"] .example-alert,
+    [data-demo="notificaciones-inteligentes"] .example-featured {
+        animation: none;
+    }
+    [data-demo="notificaciones-inteligentes"] .example-alert,
+    [data-demo="notificaciones-inteligentes"] .example-alert:hover {
+        transform: none;
+        transition: none;
+    }
+    [data-demo="notificaciones-inteligentes"] .example-alert .example-tip,
+    [data-demo="notificaciones-inteligentes"] .example-featured .example-tip {
+        transition: none;
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    [data-demo="notificaciones-inteligentes"] h3.example-outcome { font-size: 1.5rem; }
+    [data-demo="notificaciones-inteligentes"] .example-frame-body { padding: 14px; }
+    [data-demo="notificaciones-inteligentes"] .example-alert { padding: 12px 12px 12px 18px; gap: 12px; }
+    [data-demo="notificaciones-inteligentes"] .example-alert-icon { width: 40px; height: 40px; font-size: 1.15rem; }
+    [data-demo="notificaciones-inteligentes"] .example-alert-title { flex-wrap: wrap; }
+    [data-demo="notificaciones-inteligentes"] .example-meta-grid > div { grid-template-columns: 1fr; gap: 2px; }
+    [data-demo="notificaciones-inteligentes"] .example-meta-grid { gap: 12px; }
+    [data-demo="notificaciones-inteligentes"] .example-meta-inline { flex-direction: column; align-items: flex-start; row-gap: 6px; }
+    [data-demo="notificaciones-inteligentes"] .example-meta-inline > div + div::before { display: none; }
+}
+
+@media (max-width: 360px) {
+    [data-demo="notificaciones-inteligentes"] .example-alert .example-tip,
+    [data-demo="notificaciones-inteligentes"] .example-featured .example-tip {
+        top: calc(100% + 10px);
+        bottom: auto;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+    }
+}
+</style>
+
+<script is:inline>
+/* Port of the old notifications tab-filter IIFE, 1:1 control flow with the
+   old #ejemplo pivot replaced by the demo root (D1/D4). RM: click-driven
+   row filtering, no autonomous motion; RM path is CSS-only. */
+(function () {
+    try {
+        var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var root = document.querySelector('[data-demo="notificaciones-inteligentes"]');
+        if (!root) return;
+        var t = root.querySelectorAll('.example-tab');
+        var a = root.querySelectorAll('.example-alert');
+        t.forEach(function (b) {
+            b.addEventListener('click', function () {
+                t.forEach(function (x) {
+                    x.classList.remove('example-tab-active');
+                    x.setAttribute('aria-selected', 'false');
+                });
+                b.classList.add('example-tab-active');
+                b.setAttribute('aria-selected', 'true');
+                var f = b.dataset.filter;
+                a.forEach(function (i) {
+                    i.style.display = (f === 'all' || i.dataset.cat === f) ? 'flex' : 'none';
+                });
+            });
+        });
+    } catch (e) { if (window.console) console.warn('lamnda-demo', e); }
+})();
+</script>

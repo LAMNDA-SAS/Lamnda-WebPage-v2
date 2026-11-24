@@ -8,7 +8,6 @@ bullets:
   - "Canales: correo, SMS, WhatsApp y push"
   - "Trazabilidad completa de entrega y lectura"
 lang: "es"
-card: "full"
 outcome: "Cada evento crítico llega a la persona correcta, por el canal correcto, sin perseguirlo."
 ---
 

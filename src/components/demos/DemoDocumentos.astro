@@ -1,0 +1,772 @@
+---
+/**
+ * Port of the old site's `service-docs.html` `#ejemplo` live demo.
+ * Verbatim markup and class names; used-selector CSS remapped to v2 tokens
+ * under the `[data-demo="gestion-documental"]` root (design D3). One guarded
+ * inline IIFE (D1/D4): order selection -> quotation generation (IVA 19%,
+ * due +30d) -> Gmail draft/send, kept 1:1 with the old engine numbers.
+ * Old CTAs dropped; dead `tryHint` hint branches dropped (element did not
+ * exist in the old markup); 📎 attach glyph replaced with the text
+ * "Adjunto ·"; λ shield SVG kept and retokened (brand filled pair).
+ * RM (D2): CSS-only — the PED-301 row pulse is killed under
+ * prefers-reduced-motion exactly like the old stylesheet.
+ */
+---
+<div class="example-inner" data-demo="gestion-documental">
+    <span class="example-badge">Ejemplo en vivo</span>
+    <h3 class="example-outcome">Del Excel al correo en segundos</h3>
+    <p class="example-sub">Elige un pedido (prueba PED-301): 1) Genera la cotización 2) Envíala por Gmail.</p>
+    <p class="example-sample-note">Datos de muestra.</p>
+    <div class="example-frame">
+        <div class="example-frame-bar"><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-title">Generador documental</span></div>
+        <div class="example-frame-body">
+            <input id="docSearch" class="example-search" type="search" placeholder="Filtrar pedidos: andina, café, medellín..." aria-label="Filtrar pedidos">
+            <div class="example-docs-layout">
+                <div class="example-orders-panel">
+                    <div class="example-table-wrap">
+                        <table class="example-excel" id="ordersTable">
+                            <thead><tr><th>Pedido</th><th>Cliente</th><th>Ítems</th><th>Total</th><th>Dirección de entrega</th><th>Fecha</th></tr></thead>
+                            <tbody>
+                                <tr tabindex="0" data-order="PED-301"><td><strong>PED-301</strong></td><td>Distribuidora Andina</td><td>Tinta CMYK x10 + Papel A4 x20</td><td>$1.654.100</td><td>Calle 72 #10-34, Bogotá</td><td>28 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-302"><td><strong>PED-302</strong></td><td>Taller Moto Sur</td><td>Kit frenos x12</td><td>$1.028.160</td><td>Carrera 50 #12-45, Medellín</td><td>27 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-303"><td><strong>PED-303</strong></td><td>Clínica Vidal</td><td>Papel A4 caja x500 x5</td><td>$511.700</td><td>Avenida 6N #25-30, Cali</td><td>26 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-304"><td><strong>PED-304</strong></td><td>Hotel Paraíso</td><td>Tóner negro x30</td><td>$2.499.000</td><td>Calle 10 #4-12, Cali</td><td>25 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-305"><td><strong>PED-305</strong></td><td>Distribuidora Andina</td><td>Papel kraft x50</td><td>$1.100.750</td><td>Carrera 13 #32-45, Bogotá</td><td>24 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-306"><td><strong>PED-306</strong></td><td>Papelería Central</td><td>Cuaderno cosido x100</td><td>$1.166.200</td><td>Calle 53 #45-20, Medellín</td><td>22 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-307"><td><strong>PED-307</strong></td><td>Comercializadora Cafetera</td><td>Etiqueta kraft x200</td><td>$571.200</td><td>Calle 26 #68-30, Bogotá</td><td>20 ago 2026</td></tr>
+                                <tr tabindex="0" data-order="PED-308"><td><strong>PED-308</strong></td><td>Logística Caribe</td><td>Caja corrugada x150</td><td>$1.106.700</td><td>Carrera 43 #70-12, Medellín</td><td>18 ago 2026</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="example-generate-bar" id="generateBar" hidden>
+                        <button type="button" class="example-play-btn" id="generateBtn">Generar factura</button>
+                    </div>
+                </div>
+                <div class="example-preview-panel">
+                    <div class="example-factura" id="facturaBox" aria-live="polite"><strong>Cotización pendiente</strong><span>Elige un pedido de la tabla para ver aquí su cotización.</span></div>
+                    <button type="button" class="example-play-btn" id="gmailSend" disabled>Enviar por Gmail</button>
+                    <div id="gmailState"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+/* Doc-generator demo — old demos.css used-selectors rebased from .live-example
+   to [data-demo="gestion-documental"], colors remapped to v2 tokens (D3/D7).
+   Excel-green header maps to the filled brand pair; status greens/ambers map
+   to the local --demo-* pairs. */
+
+[data-demo="gestion-documental"] {
+    --demo-ok: #4ade80;
+    --demo-warn: #fbbf24;
+    --demo-danger: #f87171;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+html[data-theme="light"] [data-demo="gestion-documental"] {
+    --demo-ok: #15803d;
+    --demo-warn: #b45309;
+    --demo-danger: #b91c1c;
+}
+
+[data-demo="gestion-documental"] .example-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+
+[data-demo="gestion-documental"] h3.example-outcome {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+[data-demo="gestion-documental"] .example-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0 0 20px;
+    max-width: 700px;
+}
+
+[data-demo="gestion-documental"] .example-sample-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+[data-demo="gestion-documental"] .example-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+[data-demo="gestion-documental"] .example-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+}
+
+[data-demo="gestion-documental"] .example-frame-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+[data-demo="gestion-documental"] .example-frame-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="gestion-documental"] .example-frame-body {
+    padding: 20px;
+}
+
+[data-demo="gestion-documental"] .example-search {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    background: var(--card);
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] .example-search:focus {
+    outline: none;
+    border-color: var(--primary-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-text) 12%, transparent);
+}
+
+[data-demo="gestion-documental"] .example-docs-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+}
+
+[data-demo="gestion-documental"] .example-orders-panel {
+    min-width: 0;
+    width: 100%;
+}
+
+[data-demo="gestion-documental"] .example-preview-panel {
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+[data-demo="gestion-documental"] .example-table-wrap {
+    overflow-x: auto;
+}
+
+[data-demo="gestion-documental"] table.example-excel {
+    min-width: 680px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+[data-demo="gestion-documental"] table.example-excel th {
+    background: var(--primary-text);
+    color: var(--bg);
+    padding: 10px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="gestion-documental"] table.example-excel td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] table.example-excel tbody tr {
+    cursor: pointer;
+}
+
+[data-demo="gestion-documental"] table.example-excel tbody tr:hover td {
+    background: var(--surface);
+}
+
+[data-demo="gestion-documental"] table.example-excel tbody tr.example-excel-selected td {
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+}
+
+[data-demo="gestion-documental"] table.example-excel tbody tr:focus-visible {
+    outline: 2px solid var(--primary-text);
+    outline-offset: -2px;
+}
+
+/* Pulse first row until selected */
+[data-demo="gestion-documental"] #ordersTable tbody tr[data-order="PED-301"]:not(.example-excel-selected) td {
+    animation: demo-docs-row-pulse 1.6s ease-in-out infinite;
+}
+
+[data-demo="gestion-documental"] #ordersTable tbody tr[data-order="PED-301"]:not(.example-excel-selected) td:first-child {
+    border-left: 3px solid var(--primary-text);
+}
+
+@keyframes demo-docs-row-pulse {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: color-mix(in srgb, var(--primary-text) 12%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-demo="gestion-documental"] #ordersTable tbody tr[data-order="PED-301"]:not(.example-excel-selected) td {
+        animation: none;
+    }
+}
+
+[data-demo="gestion-documental"] .example-generate-bar {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+    animation: demo-docs-fade 0.3s ease;
+}
+
+@keyframes demo-docs-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+[data-demo="gestion-documental"] .example-generate-bar[hidden] {
+    display: none;
+}
+
+[data-demo="gestion-documental"] .example-generate-bar .example-play-btn {
+    box-shadow: var(--shadow);
+}
+
+[data-demo="gestion-documental"] .example-preview-panel .example-play-btn:disabled {
+    /* Pending step: neutral surface plus dashed border reads as "not
+       available yet" instead of a washed-out grey bar on the dark card.
+       Keeps the step badge and label legible in both themes. */
+    opacity: 1;
+    cursor: not-allowed;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px dashed var(--border);
+    box-shadow: none;
+}
+
+[data-demo="gestion-documental"] .example-factura {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 0.85rem;
+    color: var(--text);
+    min-height: 180px;
+    transition: opacity 0.35s ease;
+}
+
+/* Placeholder state: strong + span are siblings and ran together without a
+   space; stack them so the empty state reads as two lines. The replaced
+   cotización card markup is unaffected. */
+[data-demo="gestion-documental"] .example-factura > span {
+    display: block;
+    margin-top: 6px;
+}
+
+/* Numbered step badges on the two action buttons */
+[data-demo="gestion-documental"] #generateBtn,
+[data-demo="gestion-documental"] #gmailSend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Base action-button style: mirrors the other demo ports (accent pill on
+   tokens). Without it #generateBtn/#gmailSend fall back to the UA default
+   grey button, illegible on the dark demo card. */
+[data-demo="gestion-documental"] .example-play-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--primary-text);
+    border: none;
+    border-radius: 50px;
+    padding: 10px 22px;
+    cursor: pointer;
+}
+
+[data-demo="gestion-documental"] .example-play-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary-text) 82%, var(--bg));
+}
+
+[data-demo="gestion-documental"] .example-play-btn:focus-visible {
+    outline: 3px solid var(--text);
+    outline-offset: 2px;
+}
+
+[data-demo="gestion-documental"] #generateBtn::before,
+[data-demo="gestion-documental"] #gmailSend::before {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--primary-text);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+[data-demo="gestion-documental"] #generateBtn::before { content: "1"; }
+[data-demo="gestion-documental"] #gmailSend::before { content: "2"; }
+
+/* Quotation sheet */
+[data-demo="gestion-documental"] .example-cot {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] .example-cot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+}
+
+[data-demo="gestion-documental"] .example-cot-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+[data-demo="gestion-documental"] .example-cot-brand strong {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+[data-demo="gestion-documental"] .example-cot-brand small {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-cot-contact {
+    text-align: right;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+[data-demo="gestion-documental"] .example-cot-bar {
+    background: var(--primary-text);
+    color: var(--bg);
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 3px;
+    font-size: 0.82rem;
+    padding: 8px 12px;
+}
+
+[data-demo="gestion-documental"] .example-cot-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+}
+
+[data-demo="gestion-documental"] .example-cot-client {
+    min-width: 0;
+    flex: 1;
+}
+
+[data-demo="gestion-documental"] .example-cot-client > span {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-cot-client strong {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--text);
+    margin: 2px 0 4px;
+}
+
+[data-demo="gestion-documental"] .example-cot-client p {
+    margin: 0;
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-cot-info {
+    text-align: right;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+[data-demo="gestion-documental"] .example-cot-info span {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-cot-info p {
+    margin: 0 0 8px;
+}
+
+[data-demo="gestion-documental"] table.example-cot-items {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.76rem;
+    margin: 0;
+}
+
+[data-demo="gestion-documental"] table.example-cot-items th {
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+[data-demo="gestion-documental"] table.example-cot-items td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] table.example-cot-items td strong {
+    display: block;
+    font-size: 0.78rem;
+}
+
+[data-demo="gestion-documental"] table.example-cot-items td small {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+[data-demo="gestion-documental"] .example-cot-words {
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.7rem;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+}
+
+[data-demo="gestion-documental"] .example-cot-totals {
+    padding: 8px 12px 10px;
+    margin-left: auto;
+    max-width: 260px;
+    width: 100%;
+}
+
+[data-demo="gestion-documental"] .example-cot-totals p {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 4px 0;
+    font-size: 0.78rem;
+}
+
+[data-demo="gestion-documental"] .example-cot-totals p span {
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-cot-grand {
+    background: var(--primary-text);
+    color: var(--bg) !important;
+    font-weight: 800;
+    border-radius: 8px;
+    padding: 8px 10px !important;
+    margin-top: 4px !important;
+}
+
+[data-demo="gestion-documental"] .example-cot-grand span {
+    color: var(--bg) !important;
+}
+
+/* Gmail preview card */
+[data-demo="gestion-documental"] .example-gmail {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] .example-gmail-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+[data-demo="gestion-documental"] .example-gmail-dots {
+    display: inline-flex;
+    gap: 5px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-dots i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: block;
+    background: var(--primary);
+}
+
+[data-demo="gestion-documental"] .example-gmail-top strong {
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+[data-demo="gestion-documental"] .example-gmail-draftbadge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--demo-warn);
+    background: color-mix(in srgb, var(--demo-warn) 14%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--demo-warn) 40%, transparent);
+    border-radius: 50px;
+    padding: 3px 10px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-sentbadge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--demo-ok);
+    background: color-mix(in srgb, var(--demo-ok) 14%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--demo-ok) 40%, transparent);
+    border-radius: 50px;
+    padding: 3px 10px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-row {
+    margin: 0;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.76rem;
+}
+
+[data-demo="gestion-documental"] .example-gmail-row span {
+    display: inline-block;
+    min-width: 56px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 8px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-body {
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+[data-demo="gestion-documental"] .example-gmail-body p {
+    margin: 0 0 8px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-attach {
+    margin: 0 12px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+[data-demo="gestion-documental"] .example-gmail-sentline {
+    margin: 0;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--demo-ok) 10%, var(--card));
+    border-top: 1px solid color-mix(in srgb, var(--demo-ok) 30%, transparent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--demo-ok);
+}
+
+@media (max-width: 768px) {
+    [data-demo="gestion-documental"] h3.example-outcome { font-size: 1.5rem; }
+    [data-demo="gestion-documental"] .example-frame-body { padding: 14px; }
+    [data-demo="gestion-documental"] .example-cot-head { flex-direction: column; }
+    [data-demo="gestion-documental"] .example-cot-contact { text-align: left; }
+    [data-demo="gestion-documental"] .example-cot-meta { flex-direction: column; }
+    [data-demo="gestion-documental"] .example-cot-info { text-align: left; }
+    [data-demo="gestion-documental"] .example-cot-totals { max-width: none; }
+}
+</style>
+
+<script is:inline>
+/* Port of the old doc-generator IIFE, 1:1 engine (ORDERS, IVA 19%, due +30d,
+   Gmail draft/send), scoped to the demo root (D1/D4). Dead `tryHint` hint
+   branches dropped; CTAs dropped. */
+(function () {
+    try {
+        var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var root = document.querySelector('[data-demo="gestion-documental"]');
+        if (!root) return;
+        var ORDERS = {
+            'PED-301': { invoice: 'FAC-1094', client: 'Distribuidora Andina', nit: '900.123.456-7', address: 'Calle 72 #10-34, Bogotá', date: '28 ago 2026', email: 'contacto@distribuidoraandina.co', items: [{ name: 'Tinta CMYK', desc: 'Suministro de muestra para impresión', qty: 10, price: 95000 }, { name: 'Papel A4 resma', desc: 'Resma de muestra para oficina', qty: 20, price: 22000 }] },
+            'PED-302': { invoice: 'FAC-1095', client: 'Taller Moto Sur', nit: '900.234.567-8', address: 'Carrera 50 #12-45, Medellín', date: '27 ago 2026', email: 'contacto@tallermotosur.co', items: [{ name: 'Kit frenos', desc: 'Repuesto de muestra para taller', qty: 12, price: 72000 }] },
+            'PED-303': { invoice: 'FAC-1096', client: 'Clínica Vidal', nit: '900.345.678-9', address: 'Avenida 6N #25-30, Cali', date: '26 ago 2026', email: 'contacto@clinicavidal.co', items: [{ name: 'Papel A4 caja x500', desc: 'Caja de muestra para archivo', qty: 5, price: 86000 }] },
+            'PED-304': { invoice: 'FAC-1097', client: 'Hotel Paraíso', nit: '900.456.789-0', address: 'Calle 10 #4-12, Cali', date: '25 ago 2026', email: 'contacto@hotelparaiso.co', items: [{ name: 'Tóner negro', desc: 'Consumible de muestra para oficina', qty: 30, price: 70000 }] },
+            'PED-305': { invoice: 'FAC-1098', client: 'Distribuidora Andina', nit: '900.123.456-7', address: 'Carrera 13 #32-45, Bogotá', date: '24 ago 2026', email: 'contacto@distribuidoraandina.co', items: [{ name: 'Papel kraft', desc: 'Material de muestra para empaque', qty: 50, price: 18500 }] },
+            'PED-306': { invoice: 'FAC-1099', client: 'Papelería Central', nit: '900.567.890-1', address: 'Calle 53 #45-20, Medellín', date: '22 ago 2026', email: 'contacto@papeleriacentral.co', items: [{ name: 'Cuaderno cosido', desc: 'Útil de muestra para papelería', qty: 100, price: 9800 }] },
+            'PED-307': { invoice: 'FAC-1100', client: 'Comercializadora Cafetera', nit: '900.678.901-2', address: 'Calle 26 #68-30, Bogotá', date: '20 ago 2026', email: 'contacto@comercializadoracafetera.co', items: [{ name: 'Etiqueta kraft', desc: 'Etiqueta de muestra para empaque', qty: 200, price: 2400 }] },
+            'PED-308': { invoice: 'FAC-1101', client: 'Logística Caribe', nit: '900.789.012-3', address: 'Carrera 43 #70-12, Medellín', date: '18 ago 2026', email: 'contacto@logisticacaribe.co', items: [{ name: 'Caja corrugada', desc: 'Caja de muestra para logística', qty: 150, price: 6200 }] }
+        };
+        function fmt(n) { try { return '$' + n.toLocaleString('es-CO'); } catch (e) { return '$' + n; } }
+        function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        function cotNum(o) { return '004-' + o.invoice.split('-')[1]; }
+        function dueDate(dateStr) {
+            var months = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
+            var names = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            var p = String(dateStr).toLowerCase().split(' ');
+            var d = new Date(parseInt(p[2], 10), months[p[1]] || 0, parseInt(p[0], 10));
+            d.setDate(d.getDate() + 30);
+            return d.getDate() + ' ' + names[d.getMonth()] + ' ' + d.getFullYear();
+        }
+        var rows = root.querySelectorAll('#ordersTable tbody tr');
+        var search = root.querySelector('#docSearch');
+        var bar = root.querySelector('#generateBar');
+        var genBtn = root.querySelector('#generateBtn');
+        var box = root.querySelector('#facturaBox');
+        var sendBtn = root.querySelector('#gmailSend');
+        var state = root.querySelector('#gmailState');
+        var selected = null, generated = null, generatedCot = '', generatedDue = '';
+        if (search) { search.addEventListener('input', function () { var q = search.value.toLowerCase(); rows.forEach(function (r) { r.style.display = r.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none' }); }); }
+        function select(row) {
+            selected = row;
+            rows.forEach(function (r) { r.classList.remove('example-excel-selected'); r.setAttribute('aria-selected', 'false') });
+            if (row) {
+                row.classList.add('example-excel-selected'); row.setAttribute('aria-selected', 'true');
+                var key = row.getAttribute('data-order'), o = ORDERS[key];
+                if (bar) bar.hidden = false;
+                if (genBtn && o) genBtn.textContent = 'Generar factura ' + o.invoice;
+            }
+        }
+        rows.forEach(function (r) {
+            r.addEventListener('click', function () { select(r) });
+            r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(r) } });
+        });
+        function totals(o) { var s = 0; o.items.forEach(function (i) { s += i.qty * i.price }); var iva = Math.round(s * 0.19); return { sub: s, iva: iva, tot: s + iva } }
+        function gmailCard(o, cot, due, tot, sent) {
+            var badge = sent ? '<span class="example-gmail-sentbadge">✔ Enviado</span>' : '<span class="example-gmail-draftbadge">Borrador</span>';
+            var foot = sent ? '<p class="example-gmail-sentline">✔ Correo enviado por Gmail · Cotización ' + esc(cot) + ' enviada a ' + esc(o.email) + ' · Hace un momento.</p>' : '';
+            return '<div class="example-gmail">'
+                + '<div class="example-gmail-top"><span class="example-gmail-dots"><i></i><i></i><i></i></span><strong>Gmail</strong>' + badge + '</div>'
+                + '<p class="example-gmail-row"><span>De</span> operaciones@lamnda.com</p>'
+                + '<p class="example-gmail-row"><span>Para</span> ' + esc(o.email) + '</p>'
+                + '<p class="example-gmail-row"><span>Asunto</span> Cotización No. ' + esc(cot) + ' - Lamnda S.A.S</p>'
+                + '<div class="example-gmail-body"><p>Hola ' + esc(o.client) + ',</p><p>Te compartimos la cotización No. ' + esc(cot) + ' por ' + fmt(tot) + ' con vencimiento ' + esc(due) + '. Quedamos atentos a tu confirmación.</p><p>Gracias por tu confianza.</p></div>'
+                + '<p class="example-gmail-attach">Adjunto · <span>COT-' + esc(cot) + '.pdf</span></p>'
+                + foot + '</div>';
+        }
+        if (genBtn) { genBtn.addEventListener('click', function () {
+            if (!selected) return;
+            var key = selected.getAttribute('data-order'), o = ORDERS[key];
+            if (!o) return;
+            generated = o;
+            var cot = cotNum(o), due = dueDate(o.date);
+            generatedCot = cot; generatedDue = due;
+            var t = totals(o), rws = '';
+            o.items.forEach(function (i) {
+                rws += '<tr><td><strong>' + esc(i.name) + '</strong><small>' + esc(i.desc) + '</small></td><td>' + fmt(i.price) + '</td><td>' + i.qty + '</td><td>$0</td><td>' + fmt(i.qty * i.price) + '</td></tr>';
+            });
+            box.style.opacity = '0';
+            setTimeout(function () {
+                box.innerHTML = '<div class="example-cot">'
+                    + '<div class="example-cot-head"><div class="example-cot-brand"><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M16 2 L28 7 V16 C28 24 22 29 16 31 C10 29 4 24 4 16 V7 Z" fill="var(--primary-text)"/><text x="16" y="23" text-anchor="middle" fill="var(--bg)" font-size="17" font-weight="800" font-family="Inter,Arial,sans-serif">λ</text></svg><span><strong>Lamnda S.A.S</strong><small>NIT 902015091-8</small></span></div>'
+                    + '<div class="example-cot-contact">+57 320 890 9792<br>www.lamnda.com<br>operaciones@lamnda.com<br>Cra. 90 Bis #75-78 Bogotá</div></div>'
+                    + '<div class="example-cot-bar">COTIZACIÓN</div>'
+                    + '<div class="example-cot-meta"><div class="example-cot-client"><span>Cliente</span><strong>' + esc(o.client) + '</strong><p>NIT ' + esc(o.nit) + '<br>' + esc(o.address) + '<br>Pedido ' + esc(key) + '</p></div>'
+                    + '<div class="example-cot-info"><p><span>Cotización No.</span> ' + esc(cot) + '</p><p><span>Fecha de expedición</span> ' + esc(o.date) + '</p><p><span>Vencimiento</span> ' + esc(due) + '</p></div></div>'
+                    + '<table class="example-cot-items"><thead><tr><th>Ítem</th><th>Precio</th><th>Cantidad</th><th>Descuento</th><th>Total</th></tr></thead><tbody>' + rws + '</tbody></table>'
+                    + '<div class="example-cot-words">Valor en letras: ver total.</div>'
+                    + '<div class="example-cot-totals"><p><span>Subtotal</span> ' + fmt(t.sub) + '</p><p><span>IVA 19%</span> ' + fmt(t.iva) + '</p><p class="example-cot-grand"><span>Total</span> ' + fmt(t.tot) + '</p></div>'
+                    + '</div>';
+                box.style.opacity = '1';
+                if (sendBtn) sendBtn.disabled = false;
+                if (state) state.innerHTML = gmailCard(o, cot, due, t.tot, false);
+            }, 250);
+        }) }
+        if (sendBtn) { sendBtn.addEventListener('click', function () {
+            if (!generated || sendBtn.disabled) return;
+            var t = totals(generated);
+            if (state) state.innerHTML = gmailCard(generated, generatedCot, generatedDue, t.tot, true);
+        }) }
+    } catch (e) { if (window.console) console.warn('lamnda-demo', e); }
+})();
+</script>

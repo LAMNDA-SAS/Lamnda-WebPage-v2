@@ -8,7 +8,6 @@ bullets:
   - "De CRM, hojas de cálculo y APIs al PDF final"
   - "Revisión humana antes de enviar"
 lang: "es"
-card: "full"
 outcome: "Del dato disperso al documento listo para firmar, con revisión humana incluida."
 ---
 

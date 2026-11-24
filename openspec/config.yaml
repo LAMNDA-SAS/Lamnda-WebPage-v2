@@ -7,7 +7,7 @@ context: |
   Product: Lamnda SAS marketing site from scratch — awareness, portfolio, leads, vision/mission.
   Audience: prospects + investors; language Spanish-first TBD (designs: EN lobby + ES services; vision/mission texts pending).
   Interface: light/dark themes; hero lobby with interactive Hopf Fibration (desktop mouse) / static animated (mobile); scientific style, corporate blue primary, gray/white per theme.
-  v1 services: Notificaciones Inteligentes, Documentacion Automatizada, Lead Scoring, Dashboards Dinamicos; rest as summary cards.
+  v1 services: Notificaciones Inteligentes, Documentacion Automatizada, Lead Scoring, Dashboards Dinamicos; all 8 service cards render with the same shape (3 bullets + outcome), no card-size variants.
   CTA: primary explore portfolio, secondary contact. Inspiration: Antigravity page (hero + scroll to services + mouse animations).
   References: foto lamnda web/lobby + services-grid PNGs. Pending: vision/mission texts, stack decision, git init.
 

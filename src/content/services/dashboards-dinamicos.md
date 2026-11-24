@@ -8,8 +8,7 @@ bullets:
   - "Filtros por sede, equipo y periodo"
   - "Exportación en un clic"
 lang: "es"
-card: "full"
 outcome: "La respuesta ya está en el tablero antes de que la pregunta llegue a la reunión."
 ---
 
-Visual mock below — pure CSS/SVG, no product data is fetched or displayed.
+Indicadores vivos y filtros por sede, equipo y periodo, con exportación en un clic.

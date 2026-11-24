@@ -1,0 +1,666 @@
+---
+/**
+ * Port of the old site's `service-crm-bots.html` `#ejemplo` live demo.
+ * Verbatim markup and class names; used-selector CSS remapped to v2 tokens
+ * under the `[data-demo="bots-crm"]` root (design D3). One guarded inline
+ * IIFE (D1/D4). RM: CSS-only (drag & drop + filter are user-driven; the old
+ * page ships no RM tweaks for these selectors).
+ * Directed adaptations: old CTAs dropped; 🤖 stripped from the hint;
+ * vendor SVG logo strip → text chips (6 CRM names, matches the old file).
+ * Layout: old 1100px media block → container queries on the root (D5).
+ * Tooltips inside cards are pure CSS; mobile static fallback stays @media.
+ */
+---
+<div class="example-inner example-inner-wide" data-demo="bots-crm">
+    <span class="example-badge">Ejemplo en vivo</span>
+    <h3 class="example-outcome">Ningún lead se queda sin atender</h3>
+    <p class="example-sub">Arrastra oportunidades entre etapas y consulta cada negocio sin salir del tablero.</p>
+    <p class="example-sample-note">Datos de muestra con fines ilustrativos.</p>
+    <div class="example-frame">
+        <div class="example-frame-bar"><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-dot"></span><span class="example-frame-title">Pipeline · HubSpot / Salesforce</span></div>
+        <div class="example-frame-body">
+            <div class="example-crm-shell">
+                <div class="example-crm-header">
+                    <div><strong>Creatio-style · Pipeline de ventas</strong><br><span>Arrastra las tarjetas entre columnas · Datos de muestra</span></div>
+                    <span>+ Nueva oportunidad</span>
+                </div>
+                <div class="example-pipeline" aria-hidden="true">
+                    <span class="example-pipeline-stage example-pipeline-done">Qualification</span>
+                    <span class="example-pipeline-stage example-pipeline-done">Presentation</span>
+                    <span class="example-pipeline-stage">Proposal</span>
+                    <span class="example-pipeline-stage">Contracting</span>
+                    <span class="example-pipeline-stage">Closed won</span>
+                </div>
+                <div class="example-crm-toolbar">
+                    <label class="example-crm-filter" for="crmFilter">Filtrar por responsable
+                        <input id="crmFilter" type="search" placeholder="Ej.: Ana" autocomplete="off">
+                    </label>
+                    <span class="example-crm-visible" id="crmVisible">11 oportunidades</span>
+                </div>
+                <div class="example-crm-scroll">
+                    <div class="example-kanban example-crm-board example-crm-board-5" id="crmBoard">
+                        <div class="example-crm-col" data-col="Qualification">
+                            <div class="example-crm-col-head"><h4>Qualification</h4><span class="example-crm-col-stats"><b data-count>3</b> · <b data-total></b></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-1" data-owner="Ana Torres" data-value="32.5"><strong>Distribuidora Andina S.A.S.</strong><span class="example-crm-value">$32,5M COP</span><span class="example-crm-meta">Cierre: 18 oct · 25% prob.</span><br><span class="example-crm-tag example-crm-tag-hot">Hot</span><span class="example-crm-owner"><i>AT</i> Ana Torres · Descubrimiento</span><span class="example-crm-tip" id="tip-opp-1" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Carlos Rojas</span><span class="example-tip-line"><strong>Email:</strong> crojas@andina.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0132</span><span class="example-tip-line"><strong>Última actividad:</strong> Llamada de descubrimiento · 2 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Enviar ficha técnica · 9 sep</span><span class="example-tip-line"><strong>Valor:</strong> $32,5M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 25%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-2" data-owner="Luis Gómez" data-value="18.9"><strong>Café Sierra Nevada</strong><span class="example-crm-value">$18,9M COP</span><span class="example-crm-meta">Cierre: 25 oct · 20% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>LG</i> Luis Gómez · Primer contacto</span><span class="example-crm-tip" id="tip-opp-2" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> María Páez</span><span class="example-tip-line"><strong>Email:</strong> mpaez@sierranevada.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 605 555 0188</span><span class="example-tip-line"><strong>Última actividad:</strong> Formulario web · 3 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Llamada de calificación · 10 sep</span><span class="example-tip-line"><strong>Valor:</strong> $18,9M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 20%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-3" data-owner="Marta Cifuentes" data-value="54.0"><strong>Logística Caribe S.A.S.</strong><span class="example-crm-value">$54,0M COP</span><span class="example-crm-meta">Cierre: 30 oct · 30% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>MC</i> Marta Cifuentes · Visita agendada</span><span class="example-crm-tip" id="tip-opp-3" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Jorge Vélez</span><span class="example-tip-line"><strong>Email:</strong> jvelez@logcaribe.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 605 555 0145</span><span class="example-tip-line"><strong>Última actividad:</strong> Email con catálogo · 1 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Visita en Barranquilla · 11 sep</span><span class="example-tip-line"><strong>Valor:</strong> $54,0M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 30%</span></span></div>
+                        </div>
+                        <div class="example-crm-col" data-col="Presentation">
+                            <div class="example-crm-col-head"><h4>Presentation</h4><span class="example-crm-col-stats"><b data-count>2</b> · <b data-total></b></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-4" data-owner="Ana Torres" data-value="42.7"><strong>Textiles Medellín S.A.S.</strong><span class="example-crm-value">$42,7M COP</span><span class="example-crm-meta">Cierre: 12 nov · 45% prob.</span><br><span class="example-crm-tag example-crm-tag-hot">Hot</span><span class="example-crm-owner"><i>AT</i> Ana Torres · Demo realizada</span><span class="example-crm-tip" id="tip-opp-4" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Lucía Herrera</span><span class="example-tip-line"><strong>Email:</strong> lherrera@textilesmed.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 604 555 0171</span><span class="example-tip-line"><strong>Última actividad:</strong> Demo virtual · 30 ago</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Enviar propuesta · 9 sep</span><span class="example-tip-line"><strong>Valor:</strong> $42,7M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 45%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-5" data-owner="Luis Gómez" data-value="68.3"><strong>Energía Renovable Andina</strong><span class="example-crm-value">$68,3M COP</span><span class="example-crm-meta">Cierre: 15 nov · 50% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>LG</i> Luis Gómez · Cotización pedida</span><span class="example-crm-tip" id="tip-opp-5" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Andrés Peña</span><span class="example-tip-line"><strong>Email:</strong> apena@erandina.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0119</span><span class="example-tip-line"><strong>Última actividad:</strong> Presentación técnica · 28 ago</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Reunión con gerencia · 12 sep</span><span class="example-tip-line"><strong>Valor:</strong> $68,3M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 50%</span></span></div>
+                        </div>
+                        <div class="example-crm-col" data-col="Proposal">
+                            <div class="example-crm-col-head"><h4>Proposal</h4><span class="example-crm-col-stats"><b data-count>2</b> · <b data-total></b></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-6" data-owner="Marta Cifuentes" data-value="96.4"><strong>Constructora Horizonte</strong><span class="example-crm-value">$96,4M COP</span><span class="example-crm-meta">Cierre: 28 nov · 65% prob.</span><br><span class="example-crm-tag example-crm-tag-hot">Hot</span><span class="example-crm-owner"><i>MC</i> Marta Cifuentes · Propuesta enviada</span><span class="example-crm-tip" id="tip-opp-6" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Felipe Orozco</span><span class="example-tip-line"><strong>Email:</strong> forozco@horizonte.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0160</span><span class="example-tip-line"><strong>Última actividad:</strong> Propuesta v2 enviada · 3 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Seguimiento comité · 10 sep</span><span class="example-tip-line"><strong>Valor:</strong> $96,4M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 65%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-7" data-owner="Ana Torres" data-value="74.2"><strong>Clínica San Rafael</strong><span class="example-crm-value">$74,2M COP</span><span class="example-crm-meta">Cierre: 20 nov · 60% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>AT</i> Ana Torres · En comité</span><span class="example-crm-tip" id="tip-opp-7" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Dra. Paola León</span><span class="example-tip-line"><strong>Email:</strong> pleon@sanrafael.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0127</span><span class="example-tip-line"><strong>Última actividad:</strong> Reunión comité · 29 ago</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Ajustar alcance · 11 sep</span><span class="example-tip-line"><strong>Valor:</strong> $74,2M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 60%</span></span></div>
+                        </div>
+                        <div class="example-crm-col" data-col="Contracting">
+                            <div class="example-crm-col-head"><h4>Contracting</h4><span class="example-crm-col-stats"><b data-count>2</b> · <b data-total></b></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-8" data-owner="Luis Gómez" data-value="58.9"><strong>Alimentos del Valle S.A.S.</strong><span class="example-crm-value">$58,9M COP</span><span class="example-crm-meta">Cierre: 5 dic · 80% prob.</span><br><span class="example-crm-tag example-crm-tag-hot">Hot</span><span class="example-crm-owner"><i>LG</i> Luis Gómez · Contrato en revisión</span><span class="example-crm-tip" id="tip-opp-8" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Camilo Duarte</span><span class="example-tip-line"><strong>Email:</strong> cduarte@alivalle.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 602 555 0153</span><span class="example-tip-line"><strong>Última actividad:</strong> Minuta enviada · 4 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Firma gerencia · 9 sep</span><span class="example-tip-line"><strong>Valor:</strong> $58,9M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 80%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-9" data-owner="Marta Cifuentes" data-value="39.8"><strong>TechSoluciones Bogotá</strong><span class="example-crm-value">$39,8M COP</span><span class="example-crm-meta">Cierre: 8 dic · 75% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>MC</i> Marta Cifuentes · Validación jurídica</span><span class="example-crm-tip" id="tip-opp-9" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Diana Castro</span><span class="example-tip-line"><strong>Email:</strong> dcastro@techsol.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0194</span><span class="example-tip-line"><strong>Última actividad:</strong> Revisión jurídica · 2 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Firma digital · 12 sep</span><span class="example-tip-line"><strong>Valor:</strong> $39,8M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 75%</span></span></div>
+                        </div>
+                        <div class="example-crm-col" data-col="Closed won">
+                            <div class="example-crm-col-head"><h4>Closed won</h4><span class="example-crm-col-stats"><b data-count>2</b> · <b data-total></b></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-10" data-owner="Ana Torres" data-value="87.5"><strong>Hotel Cartagena Bay</strong><span class="example-crm-value">$87,5M COP ✔</span><span class="example-crm-meta">Cerrada: 4 sep · 100% prob.</span><br><span class="example-crm-tag example-crm-tag-hot">Hot</span><span class="example-crm-owner"><i>AT</i> Ana Torres · Onboarding iniciado</span><span class="example-crm-tip" id="tip-opp-10" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Sofía Marín</span><span class="example-tip-line"><strong>Email:</strong> smarin@cartagenabay.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 605 555 0121</span><span class="example-tip-line"><strong>Última actividad:</strong> Contrato firmado · 4 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Kickoff onboarding · 10 sep</span><span class="example-tip-line"><strong>Valor:</strong> $87,5M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 100%</span></span></div>
+                            <div class="example-crm-card" draggable="true" tabindex="0" aria-describedby="tip-opp-11" data-owner="Luis Gómez" data-value="63.1"><strong>Laboratorios VitalCare</strong><span class="example-crm-value">$63,1M COP ✔</span><span class="example-crm-meta">Cerrada: 2 sep · 100% prob.</span><br><span class="example-crm-tag example-crm-tag-warm">Warm</span><span class="example-crm-owner"><i>LG</i> Luis Gómez · Póliza activada</span><span class="example-crm-tip" id="tip-opp-11" role="tooltip"><span class="example-tip-line"><strong>Contacto:</strong> Dr. Martín Suescún</span><span class="example-tip-line"><strong>Email:</strong> msuescun@vitalcare.co</span><span class="example-tip-line"><strong>Teléfono:</strong> +57 601 555 0176</span><span class="example-tip-line"><strong>Última actividad:</strong> Pago inicial · 2 sep</span><span class="example-tip-line"><strong>Próxima tarea:</strong> Implementación · 15 sep</span><span class="example-tip-line"><strong>Valor:</strong> $63,1M COP</span><span class="example-tip-line"><strong>Probabilidad:</strong> 100%</span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="example-crm-footer"><span>Total pipeline <strong id="crmTotal">$636,3M COP</strong></span><span id="crmCount">11 oportunidades · Datos de muestra</span></div>
+                <p class="example-crm-hint">Auto-asignación round-robin + recordatorio si una tarjeta lleva &gt;24 h quieta.</p>
+            </div>
+        </div>
+    </div>
+    <div class="example-cta-row example-cta-box">
+        <p class="example-channels-title">Trabajamos con los CRM más populares</p>
+        <ul class="example-channels">
+            <li class="example-channel-item"><span>HubSpot</span></li>
+            <li class="example-channel-item"><span>Salesforce</span></li>
+            <li class="example-channel-item"><span>Zoho</span></li>
+            <li class="example-channel-item"><span>Pipedrive</span></li>
+            <li class="example-channel-item"><span>Freshsales</span></li>
+            <li class="example-channel-item"><span>Monday CRM</span></li>
+        </ul>
+        <p class="example-slogan">Dinos tu CRM y lo automatizamos</p>
+    </div>
+</div>
+
+<style is:global>
+/* CRM board demo — old demos.css used-selectors rebased from .live-example
+   to [data-demo="bots-crm"], colors remapped to v2 tokens (design D3/D7).
+   Old purple board (#6d28d9/#8b5cf6/#4c1d95) → var(--primary-text) system. */
+
+[data-demo="bots-crm"] {
+    --demo-ok: #4ade80;
+    --demo-warn: #fbbf24;
+    --demo-danger: #f87171;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    container-type: inline-size;
+}
+
+html[data-theme="light"] [data-demo="bots-crm"] {
+    --demo-ok: #15803d;
+    --demo-warn: #b45309;
+    --demo-danger: #b91c1c;
+}
+
+[data-demo="bots-crm"] .example-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+}
+
+[data-demo="bots-crm"] h3.example-outcome {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+[data-demo="bots-crm"] .example-sub {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0 0 20px;
+    max-width: 700px;
+}
+
+[data-demo="bots-crm"] .example-sample-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+[data-demo="bots-crm"] .example-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+[data-demo="bots-crm"] .example-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+}
+
+[data-demo="bots-crm"] .example-frame-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+[data-demo="bots-crm"] .example-frame-dot:first-child { background: var(--primary); }
+[data-demo="bots-crm"] .example-frame-dot:nth-child(2) { background: var(--primary); }
+[data-demo="bots-crm"] .example-frame-dot:nth-child(3) { background: var(--primary); }
+
+[data-demo="bots-crm"] .example-frame-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+[data-demo="bots-crm"] .example-frame-body {
+    padding: 20px;
+}
+
+[data-demo="bots-crm"] .example-crm-shell {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+[data-demo="bots-crm"] .example-crm-header {
+    background: var(--primary-text);
+    color: var(--bg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+[data-demo="bots-crm"] .example-crm-header strong {
+    font-size: 1rem;
+}
+
+[data-demo="bots-crm"] .example-crm-header span {
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+[data-demo="bots-crm"] .example-pipeline {
+    display: flex;
+    gap: 4px;
+    padding: 12px 14px;
+    background: var(--surface);
+    overflow-x: auto;
+}
+
+[data-demo="bots-crm"] .example-pipeline-stage {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--primary-text);
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+    border-radius: 8px;
+    padding: 8px 6px;
+    white-space: nowrap;
+}
+
+[data-demo="bots-crm"] .example-pipeline-stage.example-pipeline-done {
+    background: var(--primary-text);
+    color: var(--bg);
+}
+
+[data-demo="bots-crm"] .example-crm-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-top: 1px solid color-mix(in srgb, var(--primary-text) 12%, transparent);
+}
+
+[data-demo="bots-crm"] .example-crm-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-text);
+}
+
+[data-demo="bots-crm"] .example-crm-filter input {
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--primary-text) 30%, transparent);
+    border-radius: 50px;
+    padding: 8px 14px;
+    min-width: 200px;
+}
+
+[data-demo="bots-crm"] .example-crm-filter input:focus {
+    outline: none;
+    border-color: var(--primary-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-text) 15%, transparent);
+}
+
+[data-demo="bots-crm"] .example-crm-visible {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-text);
+}
+
+[data-demo="bots-crm"] .example-crm-scroll {
+    background: var(--surface);
+}
+
+[data-demo="bots-crm"] .example-kanban {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+[data-demo="bots-crm"] .example-crm-board {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 14px;
+    background: var(--surface);
+}
+
+[data-demo="bots-crm"] .example-crm-board-5 {
+    grid-template-columns: repeat(5, minmax(230px, 1fr));
+    padding: 16px;
+    gap: 14px;
+    align-items: start;
+}
+
+[data-demo="bots-crm"] .example-crm-col {
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 420px;
+    overflow: visible;
+    border: 2px dashed transparent;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+[data-demo="bots-crm"] .example-crm-col.example-crm-over {
+    border-color: var(--primary-text);
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+}
+
+[data-demo="bots-crm"] .example-crm-col-head {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: color-mix(in srgb, var(--card) 90%, transparent);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border: 1px solid color-mix(in srgb, var(--primary-text) 12%, transparent);
+}
+
+[data-demo="bots-crm"] .example-crm-col-head h4 {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--primary-text);
+}
+
+[data-demo="bots-crm"] .example-crm-col-stats {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-text);
+    white-space: nowrap;
+}
+
+[data-demo="bots-crm"] .example-crm-col-stats b {
+    font-weight: 800;
+}
+
+[data-demo="bots-crm"] .example-crm-card {
+    position: relative;
+    overflow: visible;
+    min-height: 148px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary-text);
+    border-radius: 10px;
+    padding: 16px 14px;
+    margin-bottom: 10px;
+    cursor: grab;
+    font-size: 0.78rem;
+}
+
+[data-demo="bots-crm"] .example-crm-card:active {
+    cursor: grabbing;
+}
+
+[data-demo="bots-crm"] .example-crm-card.example-crm-dragging {
+    opacity: 0.5;
+}
+
+[data-demo="bots-crm"] .example-crm-card:focus-visible {
+    outline: 2px solid var(--primary-text);
+    outline-offset: 2px;
+}
+
+[data-demo="bots-crm"] .example-crm-card[hidden] {
+    display: none;
+}
+
+[data-demo="bots-crm"] .example-crm-card strong {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+[data-demo="bots-crm"] .example-crm-value {
+    font-weight: 800;
+    color: var(--primary-text);
+    font-size: 0.85rem;
+}
+
+[data-demo="bots-crm"] .example-crm-meta {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+[data-demo="bots-crm"] .example-crm-tag {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 800;
+    border-radius: 50px;
+    padding: 2px 8px;
+    margin: 6px 4px 6px 0;
+    background: color-mix(in srgb, var(--primary-text) 12%, var(--card));
+    color: var(--primary-text);
+}
+
+[data-demo="bots-crm"] .example-crm-tag.example-crm-tag-hot {
+    background: color-mix(in srgb, var(--demo-danger) 14%, var(--card));
+    color: var(--demo-danger);
+}
+
+[data-demo="bots-crm"] .example-crm-tag.example-crm-tag-warm {
+    background: color-mix(in srgb, var(--demo-warn) 12%, var(--card));
+    color: var(--demo-warn);
+    border: 1px solid color-mix(in srgb, var(--demo-warn) 35%, transparent);
+}
+
+[data-demo="bots-crm"] .example-crm-owner {
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    margin-top: 4px;
+}
+
+[data-demo="bots-crm"] .example-crm-owner i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--primary-text);
+    color: var(--bg);
+    font-style: normal;
+    font-size: 0.62rem;
+    font-weight: 800;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* Pure-CSS tooltip above each card (no layout shift). */
+[data-demo="bots-crm"] .example-crm-card .example-crm-tip {
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    top: calc(100% + 10px);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--primary-text);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    text-align: left;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+[data-demo="bots-crm"] .example-crm-card:hover .example-crm-tip,
+[data-demo="bots-crm"] .example-crm-card:focus-within .example-crm-tip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+[data-demo="bots-crm"] .example-crm-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--primary-text);
+    color: var(--bg);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 14px 18px;
+}
+
+[data-demo="bots-crm"] .example-crm-footer strong {
+    color: var(--bg);
+    font-size: 0.95rem;
+    margin-left: 6px;
+}
+
+[data-demo="bots-crm"] .example-crm-hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--surface);
+    margin: 0;
+    padding: 0 14px 14px;
+}
+
+/* Wide live example board (D6 strips kept minus SVGs) + slogan chip row. */
+[data-demo="bots-crm"] .example-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+[data-demo="bots-crm"] .example-cta-box {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+}
+
+[data-demo="bots-crm"] .example-channels-title {
+    margin: 0 0 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+[data-demo="bots-crm"] .example-channels {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 16px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+}
+
+[data-demo="bots-crm"] .example-channel-item span {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary-text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 14px;
+}
+
+[data-demo="bots-crm"] .example-slogan {
+    margin: 22px 0 0;
+    border-left: none;
+    padding-left: 0;
+    text-align: center;
+    max-width: 560px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-text);
+}
+
+/* Old @media (max-width:1100px) block → container queries on the demo root (D5). */
+@container (max-width: 1100px) {
+    [data-demo="bots-crm"] .example-crm-scroll {
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    [data-demo="bots-crm"] .example-crm-board-5 {
+        min-width: 1240px;
+    }
+}
+
+@media (max-width: 768px) {
+    [data-demo="bots-crm"] h3.example-outcome { font-size: 1.5rem; }
+    [data-demo="bots-crm"] .example-frame-body { padding: 14px; }
+    [data-demo="bots-crm"] .example-crm-card .example-crm-tip {
+        position: static;
+        width: auto;
+        max-width: none;
+        margin-top: 12px;
+        pointer-events: auto;
+        transform: none;
+    }
+    [data-demo="bots-crm"] .example-crm-filter input { min-width: 0; width: 100%; }
+    [data-demo="bots-crm"] .example-crm-filter { width: 100%; flex-direction: column; align-items: stretch; }
+}
+</style>
+
+<script is:inline>
+/* Port of the old CRM drag & drop + owner-filter IIFE, 1:1 control flow,
+   scoped to the demo root (D1/D4). RM: user drag/type interactions only. */
+(function () {
+    try {
+        var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var root = document.querySelector('[data-demo="bots-crm"]');
+        if (!root) return;
+        var board = root.querySelector('#crmBoard');
+        if (!board) return;
+        var drag = null;
+        function fmt(v) { return '$' + v.toFixed(1).replace('.', ',') + 'M COP'; }
+        function visibleCards(col) {
+            return Array.prototype.slice.call(col.querySelectorAll('.example-crm-card')).filter(function (c) { return !c.hidden; });
+        }
+        function update() {
+            var grand = 0, grandN = 0;
+            board.querySelectorAll('.example-crm-col').forEach(function (col) {
+                var cards = visibleCards(col);
+                var sum = cards.reduce(function (a, c) { return a + (parseFloat(c.getAttribute('data-value')) || 0); }, 0);
+                grand += sum; grandN += cards.length;
+                var n = col.querySelector('[data-count]');
+                var t = col.querySelector('[data-total]');
+                if (n) n.textContent = cards.length;
+                if (t) t.textContent = fmt(sum);
+            });
+            var total = root.querySelector('#crmTotal');
+            if (total) total.textContent = fmt(grand);
+            var count = root.querySelector('#crmVisible');
+            if (count) count.textContent = grandN + (grandN === 1 ? ' oportunidad' : ' oportunidades');
+            var foot = root.querySelector('#crmCount');
+            if (foot) foot.textContent = grandN + (grandN === 1 ? ' oportunidad' : ' oportunidades') + ' · Datos de muestra';
+        }
+        board.querySelectorAll('.example-crm-card').forEach(function (c) {
+            c.addEventListener('dragstart', function () { drag = c; c.classList.add('example-crm-dragging'); });
+            c.addEventListener('dragend', function () { c.classList.remove('example-crm-dragging'); });
+        });
+        board.querySelectorAll('.example-crm-col').forEach(function (col) {
+            col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('example-crm-over'); });
+            col.addEventListener('dragleave', function () { col.classList.remove('example-crm-over'); });
+            col.addEventListener('drop', function (e) {
+                e.preventDefault();
+                col.classList.remove('example-crm-over');
+                if (drag) { col.appendChild(drag); drag = null; update(); }
+            });
+        });
+        var filter = root.querySelector('#crmFilter');
+        if (filter) {
+            filter.addEventListener('input', function () {
+                var q = filter.value.trim().toLowerCase();
+                board.querySelectorAll('.example-crm-card').forEach(function (c) {
+                    var o = (c.getAttribute('data-owner') || '').toLowerCase();
+                    c.hidden = q && o.indexOf(q) === -1;
+                });
+                update();
+            });
+        }
+        update();
+    } catch (e) { if (window.console) console.warn('lamnda-demo', e); }
+})();
+</script>

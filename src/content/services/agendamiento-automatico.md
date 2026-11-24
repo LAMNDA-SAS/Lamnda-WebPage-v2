@@ -8,7 +8,6 @@ bullets:
   - "Confirmación y recordatorios por WhatsApp y correo"
   - "Reprogramación automática sin llamadas de más"
 lang: "es"
-card: "full"
 draftLabel: "Borrador — texto oficial pendiente"
 outcome: "La agenda se llena sola y los huecos vacíos desaparecen."
 ---
